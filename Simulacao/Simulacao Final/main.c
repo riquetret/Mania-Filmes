@@ -25,6 +25,7 @@ int le_numero(void *numero,double ri, double rf, char t);
 
 int main(){
     enum Estados opcao;
+    Filme vetor[50];
     le_numero(&opcao,1,6,'i');
     switch(opcao){
         case 1:
