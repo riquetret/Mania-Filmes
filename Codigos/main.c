@@ -1,17 +1,14 @@
-#include <stlib.h>
+#include <stdlib.h>
 #include <stdio.h>
-/*
-Uma struct chamada Filme
-– A struct Filme ´e um registro que armazena as informa¸c˜oes de um filme da base. Ela possui os
-seguintes atributos:
-∗ identificador - ´e um n´umero que deve ser ´unico para cada filme e deve ser atribu´ıdo automati-
-camente.
-∗ nome - m´aximo 50 caracteres.
-∗ genero - m´aximo 30 caracteres.
-∗ anoLancamento - deve ser um n´umero entre 1900 e 2021.
-∗ nomeDiretor - m´aximo 30 caracteres.
-– Vocˆe pode acrescentar outros atributos se achar necess´ario.
-*/
+
+void limpa_buffer() {
+    int caracter=0;
+    do {
+    caracter = fgetc(stdin);
+    } while (caracter != '\n' && caracter!=EOF);
+    if(caracter==EOF)clearerr(stdin);
+}
+
 typedef struct Filme
 {
     unsigned int indentificador;
@@ -21,7 +18,7 @@ typedef struct Filme
     char nomeDiretor[30];
 };
 
-int maint(){
-    
+int main(){
+    enum week{Mon, Tue, Wed, Thur, Fri, Sat, Sun};
     return 0;
 }
