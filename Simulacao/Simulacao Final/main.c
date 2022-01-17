@@ -17,7 +17,6 @@ enum Estados{
     Remover=3,
     Exibir=4,
     Gravar=5,
-    Ler=6,
 };
 
 void limpa_buffer();
@@ -41,7 +40,7 @@ int main(){
            "Digite abaixo qual opcao deseja");
         printf("\n%s\n",menu);
 
-        le_numero(&opcao,1,6,'i');
+        le_numero(&opcao,1,5,'i');
         system("cls");
         system("clear");
         switch(opcao){
@@ -59,9 +58,6 @@ int main(){
             break;
             case Gravar:
                 printf("opcao 5\n");
-            break;
-            case Ler:
-                printf("opcao 6\n");
             break;
             default:
                 printf("Olhe as opcoes\n");
