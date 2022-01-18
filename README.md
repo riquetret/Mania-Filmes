@@ -16,5 +16,5 @@ Em que será possível:
 - Roginaldo Rebouças              - Funções referentes à adição de filmes
 - Lucas Henrique                  - Funções referentes à adição de filmes
 - João Vitor                      - Funções referentes à edição dos filmes e busca no banco de dados
-- Pedro ... falta nome completo   - Funções referentes ao exibir e gravar filmes do banco de dados
+- Pedro Carneiro                  - Funções referentes ao exibir e gravar filmes do banco de dados
 - Gabriel Henrique                - Planejamento e funções referentes a leitura do banco de dados
