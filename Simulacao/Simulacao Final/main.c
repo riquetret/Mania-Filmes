@@ -43,7 +43,7 @@ int main(){
     \n4)Exibir Filmes\
     \n5)Gravar Filmes\
     \n6)Ler Filme do Banco";
-    int posicoes,tam_vec=0,retorno;
+    int posicoes,filmes_adicionados=0,retorno;
     FILE *arquivo;
     inicializa_arquivo(&arquivo,"filmes.txt","r+");
 
@@ -66,9 +66,11 @@ int main(){
                 limpa_buffer();                                     //Limpa lixo do teclado
                 filmes_lidos[0].nome[strcspn(filmes_lidos[0].nome, "\n")] = 0;  //Remove \n lido pelo fgets
                 //posicoes = buscaFilme(&filmes_lidos[0].nome[0])              //Busca o filme digitado
+                filmes_adicionados=50;
                 if(posicoes==-1)printf("\nErro digite o nome do filme novamente: ");
             }
         }
+        else filmes_adicionados=0;
 
         printf("\n%s\nDigite qual opcao deseja: ",menu);
         le_numero(&opcao,1,5,'i');
@@ -77,26 +79,26 @@ int main(){
         system("clear");
         switch(opcao){
             case Adicionar:
-                retorno= adicionaFilme(&filmes_lidos[0],tam_vec);
+                retorno = adicionaFilme(&filmes_lidos[0],filmes_adicionados);
                 if(retorno!=-1)printf("ERRO: O sistema nao suporta a adicao de mais filmes");
                 else{
-                    tam_vec+=retorno;
+                    filmes_adicionados+=retorno;
                     printf("Filmes adicionados com sucesso");
                 }
             break;
             case Editar:
                 if(posicoes==-1){
-                    imprimeFilmes(&filmes_lidos[0],-1,tam_vec);
+                    imprimeFilmes(&filmes_lidos[0],-1,filmes_adicionados);
                     printf("\nQual posicao deseja editar?\n");
                     le_numero(&posicoes,1,50,'i');
                     posicoes--;
                 }
-                imprimeFilmes(&filmes_lidos[0],posicoes,tam_vec);
+                imprimeFilmes(&filmes_lidos[0],posicoes,filmes_adicionados);
                 editaFilme(&filmes_lidos[0],posicoes);
             break;
             case Remover:
                 if(posicoes==-1){
-                    imprimeFilmes(&filmes_lidos[0],-1,tam_vec);
+                    imprimeFilmes(&filmes_lidos[0],-1,filmes_adicionados);
                     printf("\nQual posicao deseja deletar?\n");
                     le_numero(&posicoes,1,50,'i');
                     posicoes--;
@@ -104,11 +106,11 @@ int main(){
                 removeFilme(&filmes_lidos[0],posicoes);
             break;
             case Exibir:
-                if(posicoes==-1)imprimeFilmes(&filmes_lidos[0],-1,tam_vec);
-                else imprimeFilmes(&filmes_lidos[0],posicoes,tam_vec);
+                if(posicoes==-1)imprimeFilmes(&filmes_lidos[0],-1,filmes_adicionados);
+                else imprimeFilmes(&filmes_lidos[0],posicoes,filmes_adicionados);
             break;
             case Gravar:
-                gravaFilme(&filmes_lidos[0],tam_vec,&arquivo);
+                gravaFilme(&filmes_lidos[0],filmes_adicionados,&arquivo);
             break;
             default:
                 printf("Por algum motivo voce nao deveria estar aqui\n Vou reiniciar o programa...\n");
@@ -126,7 +128,7 @@ Retorno: Nenhum
 
 Objetivo: Consumir caracteres
 adicionais presentes no stdin.
-Se a funçãoo encontrar um EOF ela
+Se a função encontrar um EOF ela
 Reseta o stdin para futuras leituras
 */
 void limpa_buffer() {
@@ -199,7 +201,7 @@ int le_numero(void *numero,double ri, double rf, char t){
 Função: inicializa_arquivo
 Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
 Entradas: Seu ponteiro de arquivo (**arq), nome do seu arquivo(*nome), modo para abrir (*modo)
-Saídas: Seu ponteiro de arquivo é abre ou escreve o determinado arquivo (*nome)
+Saídas: Seu ponteiro de arquivo
 Retorno: Nenhum
 
 Objetivo: Abri o arquivo *nome no modo leitura,
