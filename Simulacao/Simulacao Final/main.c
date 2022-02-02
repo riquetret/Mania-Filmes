@@ -30,7 +30,7 @@ int removeFilme(Filme *ptr,int posicao);
 int imprimeFilmes(Filme *ptr,int posicao,int tam);
 int gravaFilmes(Filme *ptr,int tam,FILE **arq_orig, FILE *arq_dst);
 int leFilmes(Filme *ptr,int tam,FILE *dados);
-int buscaFilme(char *nome_filme);
+int buscaFilme(Filme *ptr,FILE *ptr2,char *nome_filme);
 
 
 int main(){
@@ -65,7 +65,7 @@ int main(){
                 fgets(&filmes_lidos[0].nome[0],50,stdin);                           //Le o filme para procurar
                 limpa_buffer();                                                     //Limpa lixo do teclado
                 filmes_lidos[0].nome[strcspn(filmes_lidos[0].nome, "\n")] = 0;      //Remove \n lido pelo fgets
-                //posicoes = buscaFilme(&filmes_lidos[0].nome[0])                   //Busca o filme digitado
+                //posicoes = buscaFilme(&filmes_lidos[0],&arquivo,&filmes_lidos[0].nome[0])                   //Busca o filme digitado
                 if(posicoes==-1)printf("\nErro digite o nome do filme novamente: ");//Erro na buscaFilme
                 else filmes_adicionados=50;                                         //O buscaFilme ja carregou 50 filmes, além do filme escolhido
             }
