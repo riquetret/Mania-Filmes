@@ -1,6 +1,8 @@
 # depslib dependency file v1.0
-1642461107 source:c:\users\eletronica\documents\github\trabalho-de-final-de-prog\simulacao\simulacao final\main.c
+1644069030 source:c:\users\eletronica\documents\github\trabalho-de-final-de-prog\simulacao\simulacao final\main.c
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
+	<time.h>
+	<locale.h>
 
