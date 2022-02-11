@@ -12,7 +12,7 @@ Em que será possível:
 
 *Teve pontuação de **60 pontos** e foi composto por 6 membros:*
 
-- Henrique Soares Costa(Líder)    - Planejamento dos Fluxogramas e do projeto
+- Henrique Soares Costa(Líder)    - Planejamento dos Fluxogramas e do projeto. (Revisor Final)
 - Roginaldo Rebouças              - Funções referentes à adição de filmes
 - Lucas Henrique                  - Funções referentes à adição de filmes
 - João Vitor                      - Funções referentes à edição dos filmes e busca no banco de dados
