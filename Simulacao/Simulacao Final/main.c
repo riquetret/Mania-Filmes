@@ -7,7 +7,7 @@
 
 typedef struct
 {
-    unsigned int identificador;
+    int identificador;
     char nome[50];
     char genero[30];
     unsigned short int anoLancamento;
@@ -32,7 +32,7 @@ int adicionaFilme(Filme *ptr,int tam);
 int editaFilme(Filme *ptr,int posicao);
 int removeFilme(Filme *ptr,int posicao);
 int imprimeFilmes(Filme *ptr,int posicao);
-int gravaFilmes(Filme *ptr,int tam,FILE **arq_orig, FILE *arq_dst);
+int gravaFilmes(Filme *ptr,FILE **arq_orig);
 int leFilmes(Filme *ptr,int tam,FILE *dados);
 int buscaFilme(Filme *ptr,FILE **ptr2,char *nome_filme);
 
@@ -93,8 +93,8 @@ int main(){
                 }
             break;
             case Editar:
-                limpa_tela();                                                   //Limpa a tela
-                imprimeFilmes(&filmes_lidos[0],posicoes);    //Exibe filme escolhido
+                limpa_tela();                                                       //Limpa a tela
+                imprimeFilmes(&filmes_lidos[0],posicoes);                           //Exibe filme escolhido
                 editaFilme(&filmes_lidos[0],posicoes);                              //Edita filme escolhido
             break;
             case Remover:
@@ -266,7 +266,7 @@ int adicionaFilme(Filme *ptr, int tam){ //desenvolvimento do prot�tipo da fun�
 }
 
 int editaFilme(Filme *ptr,int posicao){
-
+    int i;
     printf("Caso queira cancelar a operacao como um todo, digite \"0\" em pelo menos um campo a seguir\n\n");
 
     printf("Digite o nome do %d%c filme: ", posicao,248); //atrelando o nome do filme inserido pelo usuario ao filme colocado no vetor
@@ -274,6 +274,7 @@ int editaFilme(Filme *ptr,int posicao){
     ptr[posicao].nome[strcspn(ptr[posicao].nome, "\n")] = 0;    //Remove \n lido pelo fgets
     limpa_buffer();                 //Remove lixo do teclado
     if(strcmp(ptr[posicao].nome,"0")==0)return -1;          //Se a pessoa digitou 0 sai do programa e cancele
+
 
     printf("Digite o genero do %d%c filme: ", posicao,248); //atrelando o genero do filme inserido pelo usuario ao filme colocado no vetor
     fgets(ptr[posicao].genero,30,stdin);  //Le o genero com fgets para nao deixar overflow
@@ -292,6 +293,11 @@ int editaFilme(Filme *ptr,int posicao){
     limpa_buffer();
     if(strcmp(ptr[posicao].nomeDiretor,"0")==0)return -1;   //Se a pessoa digitou 0 sai do programa e cancele
 
+    for(i=0;ptr[posicao].nome[i]='\0';i++)ptr[posicao].nome[i]=tolower(ptr[posicao].nome[i]); //Transforma as letras para minusculo
+    for(i=0;ptr[posicao].genero[i]='\0';i++)ptr[posicao].genero[i]=tolower(ptr[posicao].genero[i]); //Transforma as letras para minusculo
+    for(i=0;ptr[posicao].nomeDiretor[i]='\0';i++)ptr[posicao].nomeDiretor[i]=tolower(ptr[posicao].nomeDiretor[i]); //Transforma as letras para minusculo
+
+
     ptr[posicao].identificador=1;
     /*TODO: COLOCAR GERADOR DE IDENTIFICADOR*/
     return 0;
@@ -309,11 +315,13 @@ primeira posicao da string.
 
 int removeFilme(Filme *ptr, int posicao){ //desenvolvimento do prototipo da funcao remove filme
     int i = 0;
-    if(posicao>=0){                         //Vamos apagar apenas um elemento do vetor
-        i=posicao;                          //Vamos posicionar o iterador na posicao escolhida
-        posicao++;                          //E vamos fazer o loop for com apenas 1 loop, logo posicao++
+
+    if (posicao<0) posicao = 50;                      //Vamos apagar então os 50 elementos do vetor
+    else{                                             //Vamos apagar apenas um elemento do vetor
+        i=posicao;                                    //Vamos posicionar o iterador na posicao escolhida
+        posicao++;                                    //E vamos fazer o loop for com apenas 1 loop, logo posicao++
     }
-    else posicao = 50;                      //Vamos apagar então os 50 elementos do vetor
+
     for(;i<posicao;i++){
             ptr[i].identificador = 0;             //removendo o identificador atrelado ao filme zerando ele
             strcpy(ptr[i].nome,"Nao Cadastrado");  //removendo o nome atrelado ao filme zerando ele
@@ -368,41 +376,10 @@ Objetivo: Cria uma copia de "filmes.txt" atualizando a copia com os valores
 do vetor de struct. Feito isso "filmes.txt" é deletado e a copia torna-se
 "filmes.txt".
 */
-int gravaFilmes(Filme *ptr,int tam,FILE **arq_orig, FILE *arq_dst){
-    arq_dst=fopen("filmes_copia.txt","w");                              //Cria uma copia
+int gravaFilmes(Filme *ptr,FILE **arq_orig){
+    FILE *arq_dst=fopen("filmes_copia.txt","w");                              //Cria uma copia
     long int posicao_atual = ftell(*arq_orig);                          //Recebe a posição do cursor no arquivo de origem
-    int j;                                                              //Iterador
-
-    fseek(*arq_orig,0,SEEK_SET);                                        //Coloca o cursor no inicio de arquivo de origem para copiar os elementos acima da "posicao_atual"
-    fwrite(&(*(FILE*)arq_orig),1,posicao_atual,arq_dst);                //Copia os elementos acima da "posicao_atual"
-    for(j=0;tam--;j=0,ptr++){                                       //Agora é preciso copiar os elementos do nosso vetor de filmes
-        for(;j<5;j++){                                                  //Vamos copiar até tamanho ser igual a zero
-            switch (j)
-            {
-            case 1:
-                fprintf(arq_dst,"n: %s\n",ptr->nome);               //Copia Nome para arquivo destino
-                break;
-            case 2:
-                fprintf(arq_dst,"g: %s\n",ptr->genero);             //Copia Genero para arquivo destino
-                break;
-            case 3:
-                fprintf(arq_dst,"l: %d\n",ptr->anoLancamento);      //Copia anoLancamento para arquivo destino
-                break;
-            case 4:
-                fprintf(arq_dst,"d: %s\n",ptr->nomeDiretor);        //Copia Nome do diretor para arquivo destino
-                break;
-            default:
-                fprintf(arq_dst,"i: %d\n",ptr->identificador);     //Copia Nome para arquivo destino
-                break;
-            }
-        }//END FOR (;j<5;j++)
-        for(;j<10;){                                                //Eu n sei pq coloquei essa linha :()
-            if(fgetc(*arq_orig)=='\n')j++;
-        }
-    }//END FOR (j=0;tam;tam--,j=0)
-    for(;feof(*arq_orig);){                                         //Copia as linhas debaixo do vetor já copiado
-        fprintf(arq_dst,"%c",fgetc(*arq_orig));                     //Copia para arquivo de destino
-    }
+    Filme auxiliar;
     fclose(*arq_orig);                                              //Feche os ponteiros de arquivo por segurança
     fclose(arq_dst);
     remove("filmes.txt");                                           //Remove o antigo "filmes.txt"
@@ -410,7 +387,22 @@ int gravaFilmes(Filme *ptr,int tam,FILE **arq_orig, FILE *arq_dst){
     *arq_orig=fopen("filmes.txt","r+");                             //Abre novamente o ponteiro
     return 0;
 }
+/*
+Função: leFilmes
+Autor: Feita por Gabriel Henrique
+Entradas: O Vetor de filmes(*ptr), O ponteiro para o ponteiro de arquivos(**ptr2)
+e por fim o nome do filme desejado (*nome_filme)
+Saídas: Seu vetor recebe o filme desejado, se este filme
+for encontrado na base de dados
+Retorno: Zero se tudo ok ou -1 se nao encontrou o filme
 
+Objetivo: Vasculha o arquivo, lendo linha por linha
+quando encontra um nome de filme igual ao desejado,
+carrega no vetor com leFilmes() e posteriomente retorna 0
+*/
+int leFilmes(Filme *ptr,int tam,FILE *dados){
+
+}
 /*
 Função: buscaFilme
 Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
