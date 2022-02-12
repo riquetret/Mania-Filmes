@@ -32,7 +32,8 @@ int adicionaFilme(Filme *ptr,int tam);
 int editaFilme(Filme *ptr,int posicao);
 int removeFilme(Filme *ptr,int posicao);
 int imprimeFilmes(Filme *ptr,int posicao);
-int gravaFilmes(Filme *ptr,FILE **arq_orig);
+int escreveFilmes(Filme *ptr,FILE **arq_salvar,int posicao,int *tam);
+int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam);
 int leFilmes(Filme *ptr,int tam,FILE *dados);
 int buscaFilme(Filme *ptr,FILE **ptr2,char *nome_filme);
 
@@ -251,12 +252,12 @@ int adicionaFilme(Filme *ptr, int tam){ //desenvolvimento do prot�tipo da fun�
     le_numero(&qt_filmes,0,50,'i');                      //Le a quantidade de filmes que o usuario deseja (De 1 Filme até 50 Filmes)
 
     if (qt_filmes==0)return 0;                          //Se a pessoa nao quiser adicionar filmes, volte ao programa principal
-
     else if(qt_filmes+tam>50){   //A pessoa deseja adicionar mais do que o vetor suporta?
         qt_filmes=50-tam;   //Defina então o máximo para ser adicionado, ou seja, quantos espaços vazios eu tenho no vetor para adicionar
         printf("\nALERTA O maximo suportado para adicao de filmes eh:%d\n\n",qt_filmes);  //Exibe alerta para a pessoa ter ciência
     }
-    tam=0;                   //O Tam agora funciona como indicador de quantos filmes ja foram adicionados de fato no vetor
+
+    tam=0;                  //O Tam agora tem nova funcionalidade como indicador de quantos filmes ja foram adicionados de fato no vetor
     for(i=0;i<50;i++){      //Vamos adicionar os filmes no vetor percorrendo as 50 posicoes
         if (ptr[i].identificador!=0) continue;  //Caso haja um filme já cadastrado na posicao de memoria pule para a proxima posicao
         if((tam==qt_filmes) || (editaFilme(&(*ptr),i)==-1) )break;                  //Adiciona o filme a partir do edita filme e caso a pessoa queira cancelar sai do loop, tambem faz validacao caso a pessoa tenha digitada a quantidade de filmes desejada
@@ -293,9 +294,9 @@ int editaFilme(Filme *ptr,int posicao){
     limpa_buffer();
     if(strcmp(ptr[posicao].nomeDiretor,"0")==0)return -1;   //Se a pessoa digitou 0 sai do programa e cancele
 
-    for(i=0;ptr[posicao].nome[i]='\0';i++)ptr[posicao].nome[i]=tolower(ptr[posicao].nome[i]); //Transforma as letras para minusculo
-    for(i=0;ptr[posicao].genero[i]='\0';i++)ptr[posicao].genero[i]=tolower(ptr[posicao].genero[i]); //Transforma as letras para minusculo
-    for(i=0;ptr[posicao].nomeDiretor[i]='\0';i++)ptr[posicao].nomeDiretor[i]=tolower(ptr[posicao].nomeDiretor[i]); //Transforma as letras para minusculo
+    for(i=0;ptr[posicao].nome[i]!='\0';i++)ptr[posicao].nome[i]=tolower(ptr[posicao].nome[i]); //Transforma as letras para minusculo
+    for(i=0;ptr[posicao].genero[i]!='\0';i++)ptr[posicao].genero[i]=tolower(ptr[posicao].genero[i]); //Transforma as letras para minusculo
+    for(i=0;ptr[posicao].nomeDiretor[i]!='\0';i++)ptr[posicao].nomeDiretor[i]=tolower(ptr[posicao].nomeDiretor[i]); //Transforma as letras para minusculo
 
 
     ptr[posicao].identificador=1;
@@ -362,8 +363,17 @@ int imprimeFilmes(Filme *ptr,int posicao){
     }
     return 0;
 }
+int escreveFilmes(Filme *ptr,FILE **arq_salvar,int posicao,int *tam){
+    fprintf(*arq_salvar,"i: %d\n",ptr[posicao].identificador);         //Vamos colocar o nosso vetor de filmes no nosso arquivo para salvar (**arq_salvar)
+    fprintf(*arq_salvar,"n: %s\n",ptr[posicao].nome);
+    fprintf(*arq_salvar,"g: %s\n",ptr[posicao].genero);
+    fprintf(*arq_salvar,"l: %d\n",ptr[posicao].anoLancamento);
+    fprintf(*arq_salvar,"i: %s\n",ptr[posicao].nomeDiretor);
 
-
+    removeFilme(&(*ptr),posicao);                                        //Vamos agora apagar a informação salva no vetor
+    *tam--;                                                             //Ja que tiramos um filme, vamos então decrementar o indicador da quantidade de filmes salvas no vetor
+    return 0;                                                           //Retorna 0
+}
 /*
 Função: gravaFilmes
 Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
@@ -376,15 +386,49 @@ Objetivo: Cria uma copia de "filmes.txt" atualizando a copia com os valores
 do vetor de struct. Feito isso "filmes.txt" é deletado e a copia torna-se
 "filmes.txt".
 */
-int gravaFilmes(Filme *ptr,FILE **arq_orig){
-    FILE *arq_dst=fopen("filmes_copia.txt","w");                              //Cria uma copia
-    long int posicao_atual = ftell(*arq_orig);                          //Recebe a posição do cursor no arquivo de origem
-    Filme auxiliar;
-    fclose(*arq_orig);                                              //Feche os ponteiros de arquivo por segurança
+int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam){
+    if(*tam==0)return 0;                                            //O nosso vetor de filmes está vazio? Entao nao precisa gravar nada
+    FILE *arq_dst=fopen("filmes_copia.txt","w");                    //Cria uma copia para escrever os dados
+    char lido[55];                                                  //Vetor para ler as linhas do "filmes.txt"(*arq_orig)
+    int j;                                                          //Declara iterador j
+    int identidade;
+    fseek(arq_orig,0,SEEK_SET);                                   //Posiciona ponteiro para o inicio de "filmes.txt"
+    while(*tam!=0){
+        if(feof(arq_orig)){
+            for(j=0;j<50;j++){
+                if(ptr[j].identificador!=0)escreveFilmes(&(*ptr),arq_dst,j,&(*tam));   //Se o identificador no vetor de filmes nao eh nulo, logo escreva este filme no meu arquivo de destino "filmes_copia.txt"
+            }
+        }//END if(feof(*arq_orig))
+        else{
+            fgets(lido,55,arq_orig);                               //Se o arquivo nao acabou, logo vamos ler uma linha do arquivo
+            if(lido[0]=='i'){                                       //Se a linha lida foi a linha de um identifcador, logo...
+                sscanf(lido[3],"%d",identidade);                    //Vamos transformar o identificador em ASC2 para um inteiro usando sscanf
+                for(j=0;j<50;j++){                                  //Agora vamos percorrer o vetor e verificar se este identificador ja existe
+                    if(identidade==ptr[j].identificador){           //Se o identificador lido do arquivo for igual ao do vetor
+                        identidade=-1;                              //Defina identidade -1 (para analises adiante)
+                        break;                                      //Saia do loop
+                    }
+                }//END for(j=0;j<50;j++)
+                if(identidade==-1){                                 //Se foi encontrado um identificador igual ao presente no vetor, faça a escrita deste filme
+                    escreveFilmes(&(*ptr),arq_dst,j,&(*tam));      //Vamos então escrever o filme do vetor encontrado, no arquivo
+                    for(j=0;j<3;j++)fgets(lido,55,arq_orig);       //Vamos ignorar as proximas 4 linhas pois o filme do meu vetor ja foi escrito
+                    continue;                                       //Ja que terminaos essa analise vamos para a proxima
+                }
+            }//END if(lido[0]=='i')
+            fputs(lido,arq_dst);                                   //Comentários a seguir
+            for(j=0;j<3;j++){                                       //Se o identificador buscado nao tiver correspondencia ou o ponteiro no "filmes.txt" nao tiver lido um identificador
+                fgets(lido,55,arq_orig);                               //Leia a linha do "filmes.txt"
+                fputs(lido,arq_dst);                                   //Copie para "filmes_copia.txt"
+            }
+        }//END else
+
+    }//END while(*tam!=0)
+
+    fclose(arq_orig);                                              //Feche os ponteiros de arquivo por segurança
     fclose(arq_dst);
     remove("filmes.txt");                                           //Remove o antigo "filmes.txt"
     rename("filmes_copia.txt","filmes.txt");                        //Renomeia o novo para "filmes.txt"
-    *arq_orig=fopen("filmes.txt","r+");                             //Abre novamente o ponteiro
+    arq_orig=fopen("filmes.txt","r+");                             //Abre novamente o ponteiro
     return 0;
 }
 /*

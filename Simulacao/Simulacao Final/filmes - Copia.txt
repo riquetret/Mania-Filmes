@@ -1,8 +1,8 @@
 i: 1
-n: henrique
-g: costa
+n: kkkkkkkkk
+g: maoe
 l: 1950
-d: maoe
+i: henrique
 i: 2
 n: eu vi a lua
 g: maoe
