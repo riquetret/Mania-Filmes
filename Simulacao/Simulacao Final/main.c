@@ -6,6 +6,9 @@ Lucas Silva Moreira (Matricula : 20213008101)
 Roginaldo Reboucas Rocha Junior (Matricula : 20213008157)
 Pedro Carneiro Rabetim (Matricula : 20213008139)
 Gabriel Henrique Martins (Matricula : 20213009619)
+
+CASO QUEIRA VER MAIS INFORMACOES:
+github.com/riquetret/Trabalho-De-Final-de-Prog
 */
 
 #include <stdlib.h>
@@ -361,12 +364,14 @@ int geraIdentificador(FILE *ptr){
 /*
 Função: editaFilme
 Autor: João Vitor Araujo Leao
-Entradas: O ponteiro de arquivo da sua base de dados (*ptr)
-Saídas: Nenhum
-Retorno: Um identificador unico para seu filme
+Entradas: O ponteiro de arquivo da sua base de dados (*ptr),
+a posicao desejada do vetor para editar (posicao), e seu banco de dados (*ptr2) 
+Saídas: Seu vetor editado com os filmes
+Retorno: 0 se sucesso e -1 se erro
 
-Objetivo: Gera um numero aleatorio e compara se ha algum identificador igual
-a este numero gerado presente na base de dados
+Objetivo: Pergunta para o usuario as informacoes do filme
+posteriormente gera um identificador para este filme
+se ele nao tiver um.
 */
 int editaFilme(Filme *ptr,int posicao,FILE *ptr2){
     int i;
@@ -409,6 +414,10 @@ int editaFilme(Filme *ptr,int posicao,FILE *ptr2){
 /*
 Funcao: removeFilme
 Autor: Lucas Silva e Roginaldo Junior
+Entradas: O seu vetor de filmes (*ptr) e a posicao que deseja
+remover (posicao), obs: se posicao<0, remove todo o vetor de filmes
+Saídas: Seu vetor com alguns elementos a menos
+Retorno: 0 se sucesso
 
 Objetivo: remover o filme que esta na posicao inserida como
 parametro da funcao, 'zerando' o identificador e o ano de lancamento
@@ -419,18 +428,18 @@ primeira posicao da string.
 int removeFilme(Filme *ptr, int posicao){ //desenvolvimento do prototipo da funcao remove filme
     int i = 0;
 
-    if (posicao<0) posicao = 50;                      //Vamos apagar então os 50 elementos do vetor
-    else{                                             //Vamos apagar apenas um elemento do vetor
-        i=posicao;                                    //Vamos posicionar o iterador na posicao escolhida
-        posicao++;                                    //E vamos fazer o loop for com apenas 1 loop, logo posicao++
+    if (posicao<0) posicao = 50;                        //Se posicao<0, vamos apagar então os 50 elementos do vetor
+    else{                                               //Caso contrario, vamos apagar apenas um elemento do vetor
+        i=posicao;                                      //Vamos posicionar o iterador na posicao escolhida
+        posicao++;                                      //E vamos fazer o loop for com apenas 1 loop, logo posicao++
     }
 
-    for(;i<posicao;i++){
-            ptr[i].identificador = 0;             //removendo o identificador atrelado ao filme zerando ele
-            strcpy(ptr[i].nome,"Nao Cadastrado");  //removendo o nome atrelado ao filme zerando ele
-            strcpy(ptr[i].genero,"");           //removendo o genero atrelado ao filme zerando ele
-            ptr[i].anoLancamento = 0;             //removendo o ano de lancamento atrelado ao filme zerando ele
-            strcpy(ptr[i].nomeDiretor,"");      //removendo o nome do diretor atrelado ao filme zerando ele
+    for(;i<posicao;i++){                                //Percorrendo o vetor
+            ptr[i].identificador = 0;                   //removendo o identificador atrelado ao filme zerando ele
+            strcpy(ptr[i].nome,"");                     //removendo o nome atrelado ao filme zerando ele
+            strcpy(ptr[i].genero,"");                   //removendo o genero atrelado ao filme zerando ele
+            ptr[i].anoLancamento = 0;                   //removendo o ano de lancamento atrelado ao filme zerando ele
+            strcpy(ptr[i].nomeDiretor,"");              //removendo o nome do diretor atrelado ao filme zerando ele
     }
     return 0; //retorno da funcao apos sua conclusao
 }
@@ -438,20 +447,24 @@ int removeFilme(Filme *ptr, int posicao){ //desenvolvimento do prototipo da func
 /*
 Funcao: ImprimeFilme
 Autor: Pedro Carneiro Rabetim
-Objetivo: ler do teclado qual filmes ser�o impresso(ou no caso todos)
-imprimir todos os dados de um filme expec�fico ou de todos
+Entradas: O seu vetor de filmes (*ptr) e a posicao que deseja
+imprimir (posicao), obs: se posicao<0, imprime todo o vetor de filmes
+Saídas: Impressao na tela do seu vetor
+Retorno: 0 se sucesso
+Objetivo: Analisa a posicao introduzida na funcao
+e imprime o filme correspondente
 */
 
 int imprimeFilmes(Filme *ptr,int posicao){
 
-    int n=0,parada=50;
-    if(posicao >= 0){
-        n=posicao;
-        parada=posicao+1;
+    int n=0,parada=50;                                                  //Define inicialmente iterado no inicio do vetor(0) e parada no fim desse vetor (De 0 ate 49 posicoes)
+    if(posicao >= 0){                                                   //A pessoa deseja imprimir uma posicao especifica?
+        n=posicao;                                                      //O iterador ficara nesta posicao
+        parada=posicao+1;                                               //E vamos executar mais um loop, logo posicao++
     }
-    for(;n<parada;n++){
-        if(ptr[n].identificador!=0){
-            printf("\n==================");
+    for(;n<parada;n++){                                                 //Vamos percorrer o vetor ate parada
+        if(ptr[n].identificador!=0){                                    //O filme tem um identificador valido?
+            printf("\n==================");                             //Imprime caracteristicas do filme
             printf("\nNome:");
             puts(ptr[n].nome);
             printf("Genero:");
@@ -464,29 +477,43 @@ int imprimeFilmes(Filme *ptr,int posicao){
             printf("\n==================\n");
         }
     }
-    return 0;
-}
-int escreveFilmes(Filme *ptr,FILE *arq_salvar,int posicao,int *tam){
-    fprintf(arq_salvar,"i: %d\n",ptr[posicao].identificador);         //Vamos colocar o nosso vetor de filmes no nosso arquivo para salvar (**arq_salvar)
-    fprintf(arq_salvar,"n: %s\n",ptr[posicao].nome);
-    fprintf(arq_salvar,"g: %s\n",ptr[posicao].genero);
-    fprintf(arq_salvar,"l: %d\n",ptr[posicao].anoLancamento);
-    fprintf(arq_salvar,"d: %s\n",ptr[posicao].nomeDiretor);
-
-    removeFilme(&(*ptr),posicao);                                        //Vamos agora apagar a informação salva no vetor
-    *tam=(*tam)-1;                                                             //Ja que tiramos um filme, vamos então decrementar o indicador da quantidade de filmes salvas no vetor
     return 0;                                                           //Retorna 0
+}
+/*
+Função: escreveFilmes
+Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
+Entradas: Seu vetor de filmes (*ptr), a sua nova base de dados (*arq_salvar),
+a posicao do vetor que deseja salva na base de dados (posicao), a quantidade
+de filmes que ja existem no vetor (*tam)
+Saídas: Uma base dados cheianha de filmes
+Retorno: Zero se tudo ok
+
+Objetivo: Coloca as informacoes do vetor na nova base de dados
+escrevendo corretamente. É imporante salientar que apos salvo
+o filme na base dados, ele é deletado do vetor e tam tem seu conteudo
+decrementado
+*/
+int escreveFilmes(Filme *ptr,FILE *arq_salvar,int posicao,int *tam){
+    fprintf(arq_salvar,"i: %d\n",ptr[posicao].identificador);         //Coloca o identificador do nosso filme na base de dados
+    fprintf(arq_salvar,"n: %s\n",ptr[posicao].nome);                  //Coloca o nome do nosso filme na base de dados
+    fprintf(arq_salvar,"g: %s\n",ptr[posicao].genero);                //Coloca o gernero do nosso filme na base de dados
+    fprintf(arq_salvar,"l: %d\n",ptr[posicao].anoLancamento);         //Coloca o ano de lancamento do nosso filme na base de dados
+    fprintf(arq_salvar,"d: %s\n",ptr[posicao].nomeDiretor);           //Coloca o nome do diretor do nosso filme na base de dados
+
+    removeFilme(&(*ptr),posicao);                                     //Vamos agora apagar o filme salvo no vetor
+    *tam=(*tam)-1;                                                    //Ja que tiramos um filme, vamos então decrementar o indicador da quantidade de filmes salvas no vetor
+    return 0;                                                         //Retorna 0
 }
 /*
 Função: gravaFilmes
 Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
-Entradas: Struct com informações do filme (*ptr),filmes abertos no vetor (tam),
-endereço do arquivo "filmes.txt"(**arq_orig),arquivo de destino (*arq_dst)
+Entradas: Seu vetor de filmes (*ptr), seu banco de dados original(*arq_orig),
+a quantidade de filmes salva no seu vetor(*tam)
 Saídas: Um novo arquivo "filmes.txt" atualizado
 Retorno: Zero se tudo ok
 
 Objetivo: Cria uma copia de "filmes.txt" atualizando a copia com os valores
-do vetor de struct. Feito isso "filmes.txt" é deletado e a copia torna-se
+do vetor de filmes. Feito isso "filmes.txt" é deletado e a copia torna-se
 "filmes.txt".
 */
 int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam){
@@ -500,14 +527,14 @@ int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam){
 
     do{
         erro=fgets(lido,55,arq_orig);                               //Vamos ler uma linha do meu arquivo
-        if(erro==NULL){                          //Fim de arquivo encontrado
-            for(j=0;j<50 && *tam!=0;j++){
+        if(erro==NULL){                                             //Fim do banco de dados encontrado?
+            for(j=0;j<50 && *tam!=0;j++){                           //Vamos entao salvar o nosso vetor no fim "filmes.txt" ate acabar...
                 if(ptr[j].identificador!=0)escreveFilmes(&(*ptr),arq_dst,j,&(*tam));   //Se o identificador no vetor de filmes nao eh nulo, logo escreva este filme no meu arquivo de destino "filmes_copia.txt"
             }
-        }//END if(feof(*arq_orig))
-        else{
-            if(lido[0]=='i'){                                       //Se a linha lida foi a linha de um identifcador, logo...
-                sscanf(&(lido[3]),"%d",&identidade);                    //Vamos transformar o identificador em ASC2 para um inteiro usando sscanf
+        }
+        else{                                                       //Se meu banco de dados nao acabou...
+            if(lido[0]=='i'){                                       //Se a linha lida do banco foi a linha de um identifcador, logo...
+                sscanf(&(lido[3]),"%d",&identidade);                //Vamos transformar o identificador em ASC2 para um inteiro usando sscanf
                 for(j=0;j<50;j++){                                  //Agora vamos percorrer o vetor e verificar se este identificador ja existe
                     if(identidade==ptr[j].identificador){           //Se o identificador lido do arquivo for igual ao do vetor
                         identidade=-1;                              //Defina identidade -1 (para analises adiante)
@@ -520,33 +547,24 @@ int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam){
                     continue;                                       //Ja que terminos essa analise vamos para a proxima
                 }
             }//END if(lido[0]=='i')
-            fputs(lido,arq_dst);                                   //Comentários a seguir
+            fputs(lido,arq_dst);                                    //Comentários a seguir
             for(j=0;j<4;j++){                                       //Se o identificador buscado nao tiver correspondencia ou o ponteiro no "filmes.txt" nao tiver lido um identificador
                 fgets(lido,55,arq_orig);                               //Leia a linha do "filmes.txt"
                 fputs(lido,arq_dst);                                   //Copie para "filmes_copia.txt"
             }
         }//END else
 
-    }while(*tam!=0 || erro!=NULL);
+    }while(*tam!=0 || erro!=NULL);                                  //Faca a gravacao ate o tamanho ser zero, ou ate acabarmos de ler o banco de dados
 
-    fclose(arq_orig);                                              //Feche os ponteiros de arquivo por segurança
+    fclose(arq_orig);                                               //Feche os ponteiros de arquivo por segurança
     fclose(arq_dst);
     remove("filmes.txt");                                           //Remove o antigo "filmes.txt"
-    rename("filmes_copia.txt","filmes.txt");                        //Renomeia o novo para "filmes.txt"
-    return 0;
+    rename("filmes_copia.txt","filmes.txt");                        //Renomeia a copia para "filmes.txt"
+    return 0;                                                       //Retorna 0
 }
 /*
 Função: leFilmes
 Autor: Feita por Gabriel Henrique
-Entradas: O Vetor de filmes(*ptr), O ponteiro para o ponteiro de arquivos(**ptr2)
-e por fim o nome do filme desejado (*nome_filme)
-Saídas: Seu vetor recebe o filme desejado, se este filme
-for encontrado na base de dados
-Retorno: Zero se tudo ok ou -1 se nao encontrou o filme
-
-Objetivo: Vasculha o arquivo, lendo linha por linha
-quando encontra um nome de filme igual ao desejado,
-carrega no vetor com leFilmes() e posteriomente retorna 0
 */
 int leFilmes(Filme *ptr,int acao,FILE *dados){
     limpa_tela();
@@ -597,7 +615,7 @@ int leFilmes(Filme *ptr,int acao,FILE *dados){
 /*
 Função: buscaFilme
 Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
-Entradas: O Vetor de filmes(*ptr), O ponteiro para o ponteiro de arquivos(**ptr2)
+Entradas: O Vetor de filmes(*ptr), O ponteiro de arquivos(*ptr2)
 e por fim o nome do filme desejado (*nome_filme)
 Saídas: Seu vetor recebe o filme desejado, se este filme
 for encontrado na base de dados
@@ -614,19 +632,18 @@ int buscaFilme(Filme *ptr,FILE *ptr2,char *nome_filme){
 
     fseek(ptr2,0,SEEK_SET);    //Posiciona o cursor no inicio para buscar o filme
 
-    while(fgets(lido,55,ptr2)!=NULL) { //Leia uma linha do arquivo e caso encontre EOF, saia do loop e retorne -1
+    while(fgets(lido,55,ptr2)!=NULL) {                          //Leia uma linha do arquivo e caso encontre EOF, saia do loop e retorne -1
         if (lido[0]=='i'){                                      //A gente leu um identificador?
-            posicao_identificador=ftell(ptr2)-strlen(lido);    //Vamos salvar a posição desse identificador no arquivo, para que assim no futuro possamos chamar a função le_filmes, que no caso precisa obrigatoriamente iniciar a leitura no identificador
+            posicao_identificador=ftell(ptr2)-strlen(lido);     //Vamos salvar a posição desse identificador, para que assim no futuro possamos chamar a função le_filmes, que no caso precisa obrigatoriamente iniciar a leitura no identificador
         }
         else if(lido[0]=='n'){                                  //A gente leu um filme?
             lido[strcspn(lido, "\n")] = 0;                      //Remove \n introduzido pelo fgets
-            if(strcmp(&lido[3],nome_filme)==0){                 //O filme lido e o desejado é igual?
-                fseek(ptr2,posicao_identificador,SEEK_SET);    //Reposiciona cursor para identificador deste filme
-                leFilmes(&(*ptr),1,ptr2);                      //Le o filme (salva para o vetor de filmes)
+            if(strcmp(&lido[3],nome_filme)==0){                 //O filme lido e o desejado eh igual?
+                fseek(ptr2,posicao_identificador,SEEK_SET);     //Reposiciona cursor para o identificador deste filme
+                leFilmes(&(*ptr),1,ptr2);                       //Le o filme (salva para o vetor de filmes)
                 return 0;                                       //Retorna 0 indicando sucesso na busca e salvamento do filme
             }
         }
     }//END while(fgets(lido,55,*ptr2)!=NULL)
-    return -1;
+    return -1;                                                  //Retorna -1 indicando falha na busca
 }
-

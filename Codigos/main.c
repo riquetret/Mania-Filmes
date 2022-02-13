@@ -1,11 +1,25 @@
+/* GRUPO: Panelinha
+Membros:
+Henrique Soares Costa (Matricula : 20213010852)
+João Vitor Araujo Leão (Matricula : 20213008059)
+Lucas Silva Moreira (Matricula : 20213008101)
+Roginaldo Reboucas Rocha Junior (Matricula : 20213008157)
+Pedro Carneiro Rabetim (Matricula : 20213008139)
+Gabriel Henrique Martins (Matricula : 20213009619)
+
+CASO QUEIRA VER MAIS INFORMACOES:
+github.com/riquetret/Trabalho-De-Final-de-Prog
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <locale.h>
 #include <ctype.h>
+#include <time.h>
 
-typedef struct
+typedef struct  //Declara nosso struct de filmes
 {
     int identificador;
     char nome[50];
@@ -14,7 +28,7 @@ typedef struct
     char nomeDiretor[30];
 }Filme;
 
-enum Estados{
+enum Estados{   //Declara nossos estados do programa (Como se fosse uma FSM, ou maquina de estados)
     Saida=0,
     Adicionar=1,
     Editar=2,
@@ -23,19 +37,21 @@ enum Estados{
     Gravar=5,
     Ler_Banco=6,
 };
-void limpa_tela();
-void limpa_buffer();
-int le_numero(void *numero,double ri, double rf, char t);
-void inicializa_arquivo(FILE **ptr,char *nome,char *modo);
+//Declara nossos protótipos
+void limpa_tela();                                                  //Limpa a tela da console
+void limpa_buffer();                                                //Limpa o buffer do teclado (lixo do teclado)
+int le_numero(void *numero,double ri, double rf, char t);           //Le um numero no intervalo ri até rf, ou seja, ri<numero<rf
+void inicializa_arquivo(FILE **ptr,char *nome,char *modo);          //Inicializa nossos ponteiros de arquivo no modo desejado
 
-int adicionaFilme(Filme *ptr,int tam);
-int editaFilme(Filme *ptr,int posicao);
+int adicionaFilme(Filme *ptr, int tam,FILE *ptr2);
+int geraIdentificador(FILE *ptr);                                   //Gera identificador
+int editaFilme(Filme *ptr,int posicao,FILE *ptr2);
 int removeFilme(Filme *ptr,int posicao);
-int imprimeFilmes(Filme *ptr,int posicao);
-int escreveFilmes(Filme *ptr,FILE *arq_salvar,int posicao,int *tam);
-int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam);
-int leFilmes(Filme *ptr,int acao,FILE *dados);
-int buscaFilme(Filme *ptr,FILE *ptr2,char *nome_filme);
+int imprimeFilmes(Filme *ptr,int posicao);                      
+int escreveFilmes(Filme *ptr,FILE *arq_salvar,int posicao,int *tam);//Escreve do vetor de filmes para o banco de dados
+int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam);                //Grava os filmes do vetor para o banco de dados
+int leFilmes(Filme *ptr,int acao,FILE *dados);                      //Ler os filmes do banco de dados e atribuir ao vetor
+int buscaFilme(Filme *ptr,FILE *ptr2,char *nome_filme);             //Busca o nome do filme desejado
 
 
 int main(){
@@ -54,7 +70,7 @@ int main(){
 
     char acoes[][9]={"editar?","deletar?"};                                         //Declara matriz para não repetir o código basicamente
 
-    char filme_desejado[50];
+    char filme_desejado[50];                                                        //Vetor para receber o nome do filme desejado/a ser buscado
 
     int posicoes,filmes_adicionados=0,retorno;                                      //Declara posicoes (Para alterar uma posição do vetor), declara filmes_adicionados (para contabilizar quantos filmes já foram adicionados) e por fim declara retorno para analisar o retorno de algumas funções
 
@@ -71,24 +87,24 @@ int main(){
         printf("BEM-VINDO ao forum MANIA-FILMES\n");                                    //Mensagens iniciais
         printf("\nSe sua entrada nao for processada, aperte \"enter\" DUAS vezes\n\n");	//Devido ao limpa_buffer que pode tentar ler quando nao ha entradas no buffer do teclado
 
-        printf("Voce carregou filmes do banco de dados? %s",status_do_banco);
-        printf("\nQuantos filmes voce ja carregou no sistema? %d Filmes (Max 50 Filmes)\n",filmes_adicionados);
+        printf("Voce carregou filmes do banco de dados? %s",status_do_banco);           //Exibe se temos um filme carregado do banco de dados
+        printf("\nQuantos filmes voce ja carregou no sistema? %d Filmes (Max 50 Filmes)\n",filmes_adicionados); //Mostra quantos filmes foram adicionados
 
         printf("\n%s\nDigite qual opcao deseja: ",menu);                            //Exibe opções ao usuário
-        le_numero(&opcao,0,6,'i');                                                  //Le opção escolhida do menu
+        le_numero(&opcao,0,6,'i');                                                  //Le opção escolhida do menu (char menu[])
 
         limpa_tela();                                                               //Limpa a tela
         if(1<opcao && opcao<4){                                                     //A pessoa deseja editar? ou deletar ou exibir?
             imprimeFilmes(&filmes_lidos[0],-1);          //Exiba os filmes cadastrados
             printf("\nQual posicao deseja %s (0 para cancelar)\n",acoes[opcao-2] );   //Pergunta qual posicao deseja editar ou deletar ou (Sabemos que a pessoa quer uma dessas três opcoes)
-            le_numero(&posicoes,0,50,'i');                                 //Le a posição desejada
+            le_numero(&posicoes,0,50,'i');                                  //Le a posição desejada
             posicoes--;                                                     //Decrementa posicoes para escolher a posicao correta no vetor
             if(posicoes<0)continue;                                         //Se deseja cancelar saia e volte para o loop
         }
 
-        switch(opcao){
+        switch(opcao){                                                              //Analisando a escolha da pessoa
             case Adicionar:
-                retorno = adicionaFilme(&filmes_lidos[0],filmes_adicionados);       //retorno recebe a quantidade filmes adicionados
+                retorno = adicionaFilme(&filmes_lidos[0],filmes_adicionados,arquivo);       //retorno recebe a quantidade filmes adicionados
                 if(retorno==-1)printf("ERRO: O sistema nao suporta a adicao de mais filmes");//Vetor cheio?
                 else{
                     filmes_adicionados+=retorno;                                    //Incrementa os filmes_adicionados
@@ -98,25 +114,26 @@ int main(){
             case Editar:
                 limpa_tela();                                                       //Limpa a tela
                 imprimeFilmes(&filmes_lidos[0],posicoes);                           //Exibe filme escolhido
-                editaFilme(&filmes_lidos[0],posicoes);                              //Edita filme escolhido
+                editaFilme(&filmes_lidos[0],posicoes,arquivo);                              //Edita filme escolhido
             break;
             case Remover:
                 removeFilme(&filmes_lidos[0],posicoes);                         //Remove Filme Escolhido
-                if(filmes_adicionados>0)filmes_adicionados--;                   //Tiramos um filme
-                printf("Filme removido com sucesso\n");                           //Mostra Filme Removido com sucess
+                if(filmes_adicionados>0)filmes_adicionados--;                   //Tiramos um filme logo decremente filmes_adicionados
+                printf("Filme removido com sucesso\n");                           //Mostra Filme Removido com sucesso
             break;
             case Exibir:
-                printf("Qual posicao deseja exibir? -1 para todos\n");
-                le_numero(&posicoes,-1,50,'i');
+                printf("Qual posicao deseja exibir? -1 para todos\n");          //Pergunta qual posicao deseja imprimir/exibir
+                le_numero(&posicoes,-1,50,'i');                                 //Exibe a posicao
+                posicoes--;                                                     //Decrementa posicoes, para escolher a posicao correta no vetor
                 imprimeFilmes(&filmes_lidos[0],posicoes);                       //Exibe filme escolhido ou todos se posicoes igual a -1
             break;
             case Gravar:
-                printf("ALERTA: A gravacao de filmes, retira da memoria os filmes ja carregados");
+                printf("ALERTA: A gravacao de filmes, retira da memoria os filmes ja carregados\n\n");
                 gravaFilmes(&filmes_lidos[0],arquivo,&filmes_adicionados);           //Grava os filmes adicionados ou alterados
                 strcpy(status_do_banco,"NAO");                                       //Tudo foi resetado, logo o banco nao esta mais carregado
             break;
             case Ler_Banco:
-                limpa_tela();
+                limpa_tela();                                                   //limpa a tela
                 printf("ALERTA: A leitura do banco de dados, sobrescreve os filmes ja carregados na memoria\n\n");
                 printf("Voce deseja:\n");
                 printf("0)Cancelar a operacao\
@@ -124,37 +141,37 @@ int main(){
                         \n2)Abrir os filmes do Banco de dados\
                         \n3)Deletar/Recriar o Banco de Dados\n");
                 printf("Sua opcao: ");
-                le_numero(&posicoes,0,3,'i');
-                switch (posicoes)
+                le_numero(&posicoes,0,3,'i');                                   //Le a opcao desejada
+                switch (posicoes)                                               //Analisa a escolha
                 {
-                case 1:
+                case 1:                                                                 //A pessoa deseja procurar um filme
                     while(1){
                         printf("\nDigite o filme desejado: ");                          //Pede o filme
                         fgets(filme_desejado,50,stdin);                                 //Le o filme para procurar
                         limpa_buffer();                                                 //Limpa lixo do teclado
                         filme_desejado[strcspn(filme_desejado, "\n")] = 0;              //Remove \n lido pelo fgets
-                        for(posicoes=0;filme_desejado[posicoes]!='\0';posicoes++)filme_desejado[posicoes]=tolower(filme_desejado[posicoes]);
-                        if(buscaFilme(&filmes_lidos[0],arquivo,filme_desejado)==-1){
-                            printf("\nErro: Filme não encontrado\n");
-                            printf("Deseja continuar a busca? (Digite S para sim e N para nao)\n");
-                            filme_desejado[0]=getchar();
-                            filme_desejado[0]=tolower(filme_desejado[0]);
-                            if(filme_desejado[0]=='n')break;
+                        for(posicoes=0;filme_desejado[posicoes]!='\0';posicoes++)filme_desejado[posicoes]=tolower(filme_desejado[posicoes]);//Transforma o nome do filme digitado para minusculo
+                        if(buscaFilme(&filmes_lidos[0],arquivo,filme_desejado)==-1){    //Se o filme nao foi encontrado
+                            printf("\nErro: Filme não encontrado\n");                   //Exiba o erro
+                            printf("Deseja continuar a busca? (Digite S para sim e N para nao)\n"); //Pergunte se deseja continuar a busca
+                            filme_desejado[0]=getchar();                                //Leia a opcao digitada
+                            filme_desejado[0]=tolower(filme_desejado[0]);               //Transforme a opcao digitada para minusculo
+                            if(filme_desejado[0]=='n')break;                            //Se pessoa deseja sair, Saia do loop
                         }
                         else{
-                            filmes_adicionados++;
-                            strcpy(status_do_banco,"SIM");
-                        }break;
+                            filmes_adicionados++;                                       //Se o filme foi encontrado, logo incremente filmes_adicionados
+                            strcpy(status_do_banco,"SIM");                              //Fale que ha filmes carregados do banco
+                            break;                                                      //Se o filme foi encontrado, saia do loop
+                        }
                     }//END while(1)
                     break;
-                case 2:
-                    fseek(arquivo,0,SEEK_SET);                                      //Reposiciona cursor no inicio do banco de dados
-                    retorno=leFilmes(&filmes_lidos[0],2,arquivo);
-                    filmes_adicionados+=retorno;
-                    if(retorno>0)strcpy(status_do_banco,"SIM");
+                case 2:                                                             //A pessoa deseja ler o banco de dados
+                    retorno=leFilmes(&filmes_lidos[0],2,arquivo);                   //O leFilmes busca os primeiros 50 filmes do banco e retorna a quantidade adicionada para retorno
+                    filmes_adicionados+=retorno;                                    //Incremene o filmes_adicionados
+                    if(retorno>0)strcpy(status_do_banco,"SIM");                     //Se algum filme foi salvo, fale que que ha filmes carregados do banco
                     break;
                 case 3:
-                    fclose(arquivo);
+                    fclose(arquivo);                                                //Fecha o arquivo do banco de dados por seguranca
                     remove("filmes.txt");                                           //Remove o banco de dados
                     inicializa_arquivo(&arquivo,"filmes.txt","r+");                 //Recria o banco de dados "filmes.txt" no modo leitura para atualizar
                     break;
@@ -165,14 +182,25 @@ int main(){
         } //END SWITCH(OPCAO)
     }while(opcao);//END WHILE(1)
 
-    fclose(arquivo);
+    fclose(arquivo);                                                                //Salva o arquivo para encerrar as operacoes
     return 0;
 }//END MAIN
 
+/*
+Função: limpa_tela
+Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
+Entradas: Nenhuma
+Saídas: Sua tela limpa como cristal
+Retorno: Nenhum
+
+Objetivo: Apaga a tela da sua console
+usando comandos tipicos do windows e do linux
+após isso da 2 quebras de linha
+*/
 void limpa_tela(){
     system("cls");                                                              //Vamos apagar as mensagens iniciais
-    system("clear");
-    printf("\n\n");
+    system("clear");                                                            //Vamos apagar as mensagens iniciais
+    printf("\n\n");                                                             //Vamos apagar as mensagens iniciais
 }
 /*
 Função: Limpa_Buffer
@@ -208,49 +236,49 @@ contudo o valor lido deve estar entre ri e rf (ri<=valor lido<=rf).
  caso nenhum desses seja satisfeito ele irá ler um char do teclado)
 */
 int le_numero(void *numero,double ri, double rf, char t){
-    int erro=-1;
+    int erro=-1;                                                                            //Temos inicialmente um erro pq nenhuma leitura foi realizada
     do
     {
-        switch (t)
+        switch (t)                                                                          //Analisa o tipo de variavel a ser lido
         {
-        case 'd':
-            erro=scanf("%lf",(double *) numero);
-            if(erro==1){
-                if( (*(double *) numero) >= ri &&
-                (*(double *) numero) <= rf ) continue;
-                else erro=0;
+        case 'd':                                                                           //Variavel do tipo double
+            erro=scanf("%lf",(double *) numero);                                            //Le um double e erro recebe a quantidade de informacoes lidas
+            if(erro==1){                                                                    //Conseguimos ler o numero?
+                if( (*(double *) numero) >= ri &&                                           //Esse numero lido esta dentro o intervalo especificado?
+                (*(double *) numero) <= rf ) continue;                                      //Se sim pule para o proximo loop e finalize
+                else erro=0;                                                                //Se nao defina um erro
             }
             break;
-        case 'f':
-            erro=scanf("%f",(float *) numero);
-            if(erro==1){
-                if( (*(float *) numero) >= (float) ri &&
-                (*(float *) numero) <= (float) rf ) continue;
-                else erro=0;
+        case 'f':                                                                           //Variavel do tipo float
+            erro=scanf("%f",(float *) numero);                                              //Le um double e erro recebe a quantidade de informacoes lidas
+            if(erro==1){                                                                    //Conseguimos ler o numero?
+                if( (*(float *) numero) >= (float) ri &&                                    //Esse numero lido esta dentro o intervalo especificado?
+                (*(float *) numero) <= (float) rf ) continue;                               //Se sim pule para o proximo loop e finalize
+                else erro=0;                                                                //Se nao defina um erro
             }
             break;
-        case 'i':
-            erro=scanf("%d",(int *) numero);
-            if(erro==1){
-                if( (*(int *) numero) >= (int) ri &&
-                (*(int *) numero) <= (int) rf ) continue;
-                else erro=0;
+        case 'i':                                                                           //Variavel do tipo inteira 
+            erro=scanf("%d",(int *) numero);                                                //Le um double e erro recebe a quantidade de informacoes lidas
+            if(erro==1){                                                                    //Conseguimos ler o numero?
+                if( (*(int *) numero) >= (int) ri &&                                        //Esse numero lido esta dentro o intervalo especificado?
+                (*(int *) numero) <= (int) rf ) continue;                                   //Se sim pule para o proximo loop e finalize
+                else erro=0;                                                                //Se nao defina um erro
             }
             break;
-        default:
-            erro=scanf("%c",(char *) numero);
-            if(erro==1){
-                if( (*(char *) numero) >= (char) ri &&
-                (*(char *) numero) <= (char) rf ) continue;
-                else erro=0;
+        default:                                                                            //Variavel do tipo char
+            erro=scanf("%c",(char *) numero);                                               //Le um double e erro recebe a quantidade de informacoes lidas
+            if(erro==1){                                                                    //Conseguimos ler o char?
+                if( (*(char *) numero) >= (char) ri &&                                      //Esse numero lido esta dentro o intervalo especificado?
+                (*(char *) numero) <= (char) rf ) continue;                                 //Se sim pule para o proximo loop e finalize
+                else erro=0;                                                                //Se nao defina um erro
             }
             break;
-        }
-        limpa_buffer();
-        printf("\nErro Digite Novamente: ");
-    } while (erro<=0);
-    limpa_buffer();
-    return 0;
+        }//END switch(t)
+        limpa_buffer();                                                                     //Limpa lixo do teclado se errar
+        printf("\nErro Digite Novamente: ");                                                //Mostra mensagem de erro caso erre
+    } while (erro<=0);                                                                      //Houve algum erro?
+    limpa_buffer();                                                                         //Limpa lixo do teclado se errar
+    return 0;                                                                               //Retorna 0, indicando sucesso
 }
 
 /*
@@ -269,43 +297,83 @@ void inicializa_arquivo(FILE **arq,char *nome,char *modo){
     if(*arq==NULL){                                             //Se ele não existir ou o programa não ter permissão suficiente, crie ele
         fclose(*arq);                                           //Feche o arquivo por segurança
         *arq=fopen(nome,"w");                                   //Tente então criar o arquivo
-        if(*arq==NULL)exit(EXIT_FAILURE);                        //Se a criação nao foi possível finalize o programa e exiba erro
+        if(*arq==NULL)exit(EXIT_FAILURE);                       //Se a criação nao foi possível finalize o programa e exiba erro
     }
     fclose(*arq);                                               //Fecha o arquivo por segurança
     *arq=fopen(nome,modo);                                      //Reabre o arquivo no modo selecionado
 }
 
 /*
-Funcao: adicionaFilme
-Autor: Lucas Silva e Roginaldo Junior
+Função: adicionaFilme
+Autor: Lucas Silva e Roginaldo
+Entradas: Seu vetor de filmes (*ptr), quantos filmes ja foram adicionados ao vetor (tam)
+e sua base de dados (*ptr2)
+Saídas: Seu vetor cheio de filmes
+Retorno: Quantidade de filmes adicionados
 
-Objetivo: ler do teclado quantos filmes ser�o adicionados,
-requisitar os dados dos filmes e por fim adicionar esses dados
-no vetor onde todos os filmes est�o sendo armazenados
+Objetivo: Pede quantos filmes deseja adicionar, verifica quantos filmes ja tenho no vetor,
+e por fim salva no vetor o filme desejado utilizando como suporte o edita filmes
 */
 
-int adicionaFilme(Filme *ptr, int tam){ //desenvolvimento do prot�tipo da fun��o adiciona filme
+int adicionaFilme(Filme *ptr, int tam,FILE *ptr2){ //desenvolvimento do prototipo da funcao adiciona filme
     if(tam>=50)return -1;   //Se o vetor ja estiver cheio retorne erro
-    int qt_filmes, i;
+    int qt_filmes, i;       //Declara qt_filmes = quantidade filmes e nosso iterador i
     printf("Quantos filmes deseja adicionar? (Digite zero para cancelar a operacao)\n"); //solicita quantidades de filmes a serem adicionados no vetor
     le_numero(&qt_filmes,0,50,'i');                      //Le a quantidade de filmes que o usuario deseja (De 1 Filme até 50 Filmes)
 
     if (qt_filmes==0)return 0;                          //Se a pessoa nao quiser adicionar filmes, volte ao programa principal
-    else if(qt_filmes+tam>50){   //A pessoa deseja adicionar mais do que o vetor suporta?
-        qt_filmes=50-tam;   //Defina então o máximo para ser adicionado, ou seja, quantos espaços vazios eu tenho no vetor para adicionar
+    else if(qt_filmes+tam>50){                          //A pessoa deseja adicionar mais do que o vetor suporta?
+        qt_filmes=50-tam;                               //Defina então o máximo para ser adicionado, ou seja, quantos espaços vazios eu tenho no vetor para adicionar
         printf("\nALERTA O maximo suportado para adicao de filmes eh:%d\n\n",qt_filmes);  //Exibe alerta para a pessoa ter ciência
     }
 
     tam=0;                  //O Tam agora tem nova funcionalidade como indicador de quantos filmes ja foram adicionados de fato no vetor
     for(i=0;i<50;i++){      //Vamos adicionar os filmes no vetor percorrendo as 50 posicoes
         if (ptr[i].identificador!=0) continue;  //Caso haja um filme já cadastrado na posicao de memoria pule para a proxima posicao
-        if((tam==qt_filmes) || (editaFilme(&(*ptr),i)==-1) )break;                  //Adiciona o filme a partir do edita filme e caso a pessoa queira cancelar sai do loop, tambem faz validacao caso a pessoa tenha digitada a quantidade de filmes desejada
+        if((tam==qt_filmes) || (editaFilme(&(*ptr),i,ptr2)==-1) )break;                  //Adiciona o filme a partir do edita filme e caso a pessoa queira cancelar sai do loop, tambem faz validacao caso a pessoa tenha digitada a quantidade de filmes desejada
         tam++;              //Se a pessoa introduziu um filme incremente
     }
    return tam; //Retorna a quantidade filmes adicionada
 }
+/*
+Função: geraIdentificador
+Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
+Entradas: O ponteiro de arquivo da sua base de dados (*ptr)
+Saídas: Nenhum
+Retorno: Um identificador unico para seu filme
 
-int editaFilme(Filme *ptr,int posicao){
+Objetivo: Gera um numero aleatorio e compara se ha algum identificador igual
+a este numero gerado presente na base de dados
+*/
+int geraIdentificador(FILE *ptr){
+    srand(time(NULL));                                      //Gera semente para funcao rand()
+    int numerado_gerado,identificador_lido;                 //Para receber o numero gerado e para receber o identificador da base de dados
+    char lido[55];                                          //Vetor para ler as linhas do arquivo
+    numerado_gerado = rand()+1;                             //Vamos gerar um numero de 1 até RAND_MAX+1
+    fseek(ptr,0,SEEK_SET);                                  //Reposiciona ponteiro de arquivo no inicio do meu arquivo "filmes.txt"
+    while (fgets(lido,0,ptr)!=NULL)
+    {
+        if (lido[0]='i')                                    //A linha lido no arquivo é a linha de um identificador?
+        {
+            sscanf(lido,"%[i:]%d",identificador_lido);      //Vamos ler o identificador em asc2 e atribuir a variavel identificador_lido
+            if(identificador_lido==numerado_gerado)numerado_gerado = rand()+1;//Se encontramos um identificador igual na base de dados, gere um novo identificador para o filme
+        }
+    }
+    return numerado_gerado;                                 //Retorna o numero_gerado
+}
+/*
+Função: editaFilme
+Autor: João Vitor Araujo Leao
+Entradas: O ponteiro de arquivo da sua base de dados (*ptr),
+a posicao desejada do vetor para editar (posicao), e seu banco de dados (*ptr2) 
+Saídas: Seu vetor editado com os filmes
+Retorno: 0 se sucesso e -1 se erro
+
+Objetivo: Pergunta para o usuario as informacoes do filme
+posteriormente gera um identificador para este filme
+se ele nao tiver um.
+*/
+int editaFilme(Filme *ptr,int posicao,FILE *ptr2){
     int i;
     printf("Caso queira cancelar a operacao como um todo, digite \"0\" em pelo menos um campo a seguir\n\n");
 
@@ -337,15 +405,19 @@ int editaFilme(Filme *ptr,int posicao){
     for(i=0;ptr[posicao].genero[i]!='\0';i++)ptr[posicao].genero[i]=tolower(ptr[posicao].genero[i]); //Transforma as letras para minusculo
     for(i=0;ptr[posicao].nomeDiretor[i]!='\0';i++)ptr[posicao].nomeDiretor[i]=tolower(ptr[posicao].nomeDiretor[i]); //Transforma as letras para minusculo
 
-
-    ptr[posicao].identificador=posicao+1;
-    /*TODO: COLOCAR GERADOR DE IDENTIFICADOR*/
+    if(ptr[posicao].identificador==0){                      //Se o filme nao tiver identificador
+        ptr[posicao].identificador=geraIdentificador(ptr2);         //Adicione um identificador a ele, analisando obviamente a base de dados
+    }
     return 0;
 }
 
 /*
 Funcao: removeFilme
 Autor: Lucas Silva e Roginaldo Junior
+Entradas: O seu vetor de filmes (*ptr) e a posicao que deseja
+remover (posicao), obs: se posicao<0, remove todo o vetor de filmes
+Saídas: Seu vetor com alguns elementos a menos
+Retorno: 0 se sucesso
 
 Objetivo: remover o filme que esta na posicao inserida como
 parametro da funcao, 'zerando' o identificador e o ano de lancamento
@@ -356,18 +428,18 @@ primeira posicao da string.
 int removeFilme(Filme *ptr, int posicao){ //desenvolvimento do prototipo da funcao remove filme
     int i = 0;
 
-    if (posicao<0) posicao = 50;                      //Vamos apagar então os 50 elementos do vetor
-    else{                                             //Vamos apagar apenas um elemento do vetor
-        i=posicao;                                    //Vamos posicionar o iterador na posicao escolhida
-        posicao++;                                    //E vamos fazer o loop for com apenas 1 loop, logo posicao++
+    if (posicao<0) posicao = 50;                        //Se posicao<0, vamos apagar então os 50 elementos do vetor
+    else{                                               //Caso contrario, vamos apagar apenas um elemento do vetor
+        i=posicao;                                      //Vamos posicionar o iterador na posicao escolhida
+        posicao++;                                      //E vamos fazer o loop for com apenas 1 loop, logo posicao++
     }
 
-    for(;i<posicao;i++){
-            ptr[i].identificador = 0;             //removendo o identificador atrelado ao filme zerando ele
-            strcpy(ptr[i].nome,"Nao Cadastrado");  //removendo o nome atrelado ao filme zerando ele
-            strcpy(ptr[i].genero,"");           //removendo o genero atrelado ao filme zerando ele
-            ptr[i].anoLancamento = 0;             //removendo o ano de lancamento atrelado ao filme zerando ele
-            strcpy(ptr[i].nomeDiretor,"");      //removendo o nome do diretor atrelado ao filme zerando ele
+    for(;i<posicao;i++){                                //Percorrendo o vetor
+            ptr[i].identificador = 0;                   //removendo o identificador atrelado ao filme zerando ele
+            strcpy(ptr[i].nome,"");                     //removendo o nome atrelado ao filme zerando ele
+            strcpy(ptr[i].genero,"");                   //removendo o genero atrelado ao filme zerando ele
+            ptr[i].anoLancamento = 0;                   //removendo o ano de lancamento atrelado ao filme zerando ele
+            strcpy(ptr[i].nomeDiretor,"");              //removendo o nome do diretor atrelado ao filme zerando ele
     }
     return 0; //retorno da funcao apos sua conclusao
 }
@@ -375,20 +447,24 @@ int removeFilme(Filme *ptr, int posicao){ //desenvolvimento do prototipo da func
 /*
 Funcao: ImprimeFilme
 Autor: Pedro Carneiro Rabetim
-Objetivo: ler do teclado qual filmes ser�o impresso(ou no caso todos)
-imprimir todos os dados de um filme expec�fico ou de todos
+Entradas: O seu vetor de filmes (*ptr) e a posicao que deseja
+imprimir (posicao), obs: se posicao<0, imprime todo o vetor de filmes
+Saídas: Impressao na tela do seu vetor
+Retorno: 0 se sucesso
+Objetivo: Analisa a posicao introduzida na funcao
+e imprime o filme correspondente
 */
 
 int imprimeFilmes(Filme *ptr,int posicao){
 
-    int n=0,parada=50;
-    if(posicao >= 0){
-        n=posicao;
-        parada=posicao+1;
+    int n=0,parada=50;                                                  //Define inicialmente iterado no inicio do vetor(0) e parada no fim desse vetor (De 0 ate 49 posicoes)
+    if(posicao >= 0){                                                   //A pessoa deseja imprimir uma posicao especifica?
+        n=posicao;                                                      //O iterador ficara nesta posicao
+        parada=posicao+1;                                               //E vamos executar mais um loop, logo posicao++
     }
-    for(;n<parada;n++){
-        if(ptr[n].identificador!=0){
-            printf("\n==================");
+    for(;n<parada;n++){                                                 //Vamos percorrer o vetor ate parada
+        if(ptr[n].identificador!=0){                                    //O filme tem um identificador valido?
+            printf("\n==================");                             //Imprime caracteristicas do filme
             printf("\nNome:");
             puts(ptr[n].nome);
             printf("Genero:");
@@ -401,29 +477,43 @@ int imprimeFilmes(Filme *ptr,int posicao){
             printf("\n==================\n");
         }
     }
-    return 0;
-}
-int escreveFilmes(Filme *ptr,FILE *arq_salvar,int posicao,int *tam){
-    fprintf(arq_salvar,"i: %d\n",ptr[posicao].identificador);         //Vamos colocar o nosso vetor de filmes no nosso arquivo para salvar (**arq_salvar)
-    fprintf(arq_salvar,"n: %s\n",ptr[posicao].nome);
-    fprintf(arq_salvar,"g: %s\n",ptr[posicao].genero);
-    fprintf(arq_salvar,"l: %d\n",ptr[posicao].anoLancamento);
-    fprintf(arq_salvar,"d: %s\n",ptr[posicao].nomeDiretor);
-
-    removeFilme(&(*ptr),posicao);                                        //Vamos agora apagar a informação salva no vetor
-    *tam=(*tam)-1;                                                             //Ja que tiramos um filme, vamos então decrementar o indicador da quantidade de filmes salvas no vetor
     return 0;                                                           //Retorna 0
+}
+/*
+Função: escreveFilmes
+Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
+Entradas: Seu vetor de filmes (*ptr), a sua nova base de dados (*arq_salvar),
+a posicao do vetor que deseja salva na base de dados (posicao), a quantidade
+de filmes que ja existem no vetor (*tam)
+Saídas: Uma base dados cheianha de filmes
+Retorno: Zero se tudo ok
+
+Objetivo: Coloca as informacoes do vetor na nova base de dados
+escrevendo corretamente. É imporante salientar que apos salvo
+o filme na base dados, ele é deletado do vetor e tam tem seu conteudo
+decrementado
+*/
+int escreveFilmes(Filme *ptr,FILE *arq_salvar,int posicao,int *tam){
+    fprintf(arq_salvar,"i: %d\n",ptr[posicao].identificador);         //Coloca o identificador do nosso filme na base de dados
+    fprintf(arq_salvar,"n: %s\n",ptr[posicao].nome);                  //Coloca o nome do nosso filme na base de dados
+    fprintf(arq_salvar,"g: %s\n",ptr[posicao].genero);                //Coloca o gernero do nosso filme na base de dados
+    fprintf(arq_salvar,"l: %d\n",ptr[posicao].anoLancamento);         //Coloca o ano de lancamento do nosso filme na base de dados
+    fprintf(arq_salvar,"d: %s\n",ptr[posicao].nomeDiretor);           //Coloca o nome do diretor do nosso filme na base de dados
+
+    removeFilme(&(*ptr),posicao);                                     //Vamos agora apagar o filme salvo no vetor
+    *tam=(*tam)-1;                                                    //Ja que tiramos um filme, vamos então decrementar o indicador da quantidade de filmes salvas no vetor
+    return 0;                                                         //Retorna 0
 }
 /*
 Função: gravaFilmes
 Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
-Entradas: Struct com informações do filme (*ptr),filmes abertos no vetor (tam),
-endereço do arquivo "filmes.txt"(**arq_orig),arquivo de destino (*arq_dst)
+Entradas: Seu vetor de filmes (*ptr), seu banco de dados original(*arq_orig),
+a quantidade de filmes salva no seu vetor(*tam)
 Saídas: Um novo arquivo "filmes.txt" atualizado
 Retorno: Zero se tudo ok
 
 Objetivo: Cria uma copia de "filmes.txt" atualizando a copia com os valores
-do vetor de struct. Feito isso "filmes.txt" é deletado e a copia torna-se
+do vetor de filmes. Feito isso "filmes.txt" é deletado e a copia torna-se
 "filmes.txt".
 */
 int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam){
@@ -437,14 +527,14 @@ int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam){
 
     do{
         erro=fgets(lido,55,arq_orig);                               //Vamos ler uma linha do meu arquivo
-        if(erro==NULL){                          //Fim de arquivo encontrado
-            for(j=0;j<50 && *tam!=0;j++){
+        if(erro==NULL){                                             //Fim do banco de dados encontrado?
+            for(j=0;j<50 && *tam!=0;j++){                           //Vamos entao salvar o nosso vetor no fim "filmes.txt" ate acabar...
                 if(ptr[j].identificador!=0)escreveFilmes(&(*ptr),arq_dst,j,&(*tam));   //Se o identificador no vetor de filmes nao eh nulo, logo escreva este filme no meu arquivo de destino "filmes_copia.txt"
             }
-        }//END if(feof(*arq_orig))
-        else{
-            if(lido[0]=='i'){                                       //Se a linha lida foi a linha de um identifcador, logo...
-                sscanf(&(lido[3]),"%d",&identidade);                    //Vamos transformar o identificador em ASC2 para um inteiro usando sscanf
+        }
+        else{                                                       //Se meu banco de dados nao acabou...
+            if(lido[0]=='i'){                                       //Se a linha lida do banco foi a linha de um identifcador, logo...
+                sscanf(&(lido[3]),"%d",&identidade);                //Vamos transformar o identificador em ASC2 para um inteiro usando sscanf
                 for(j=0;j<50;j++){                                  //Agora vamos percorrer o vetor e verificar se este identificador ja existe
                     if(identidade==ptr[j].identificador){           //Se o identificador lido do arquivo for igual ao do vetor
                         identidade=-1;                              //Defina identidade -1 (para analises adiante)
@@ -457,33 +547,24 @@ int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam){
                     continue;                                       //Ja que terminos essa analise vamos para a proxima
                 }
             }//END if(lido[0]=='i')
-            fputs(lido,arq_dst);                                   //Comentários a seguir
+            fputs(lido,arq_dst);                                    //Comentários a seguir
             for(j=0;j<4;j++){                                       //Se o identificador buscado nao tiver correspondencia ou o ponteiro no "filmes.txt" nao tiver lido um identificador
                 fgets(lido,55,arq_orig);                               //Leia a linha do "filmes.txt"
                 fputs(lido,arq_dst);                                   //Copie para "filmes_copia.txt"
             }
         }//END else
 
-    }while(*tam!=0 || erro!=NULL);
+    }while(*tam!=0 || erro!=NULL);                                  //Faca a gravacao ate o tamanho ser zero, ou ate acabarmos de ler o banco de dados
 
-    fclose(arq_orig);                                              //Feche os ponteiros de arquivo por segurança
+    fclose(arq_orig);                                               //Feche os ponteiros de arquivo por segurança
     fclose(arq_dst);
     remove("filmes.txt");                                           //Remove o antigo "filmes.txt"
-    rename("filmes_copia.txt","filmes.txt");                        //Renomeia o novo para "filmes.txt"
-    return 0;
+    rename("filmes_copia.txt","filmes.txt");                        //Renomeia a copia para "filmes.txt"
+    return 0;                                                       //Retorna 0
 }
 /*
 Função: leFilmes
 Autor: Feita por Gabriel Henrique
-Entradas: O Vetor de filmes(*ptr), O ponteiro para o ponteiro de arquivos(**ptr2)
-e por fim o nome do filme desejado (*nome_filme)
-Saídas: Seu vetor recebe o filme desejado, se este filme
-for encontrado na base de dados
-Retorno: Zero se tudo ok ou -1 se nao encontrou o filme
-
-Objetivo: Vasculha o arquivo, lendo linha por linha
-quando encontra um nome de filme igual ao desejado,
-carrega no vetor com leFilmes() e posteriomente retorna 0
 */
 int leFilmes(Filme *ptr,int acao,FILE *dados){
     limpa_tela();
@@ -534,7 +615,7 @@ int leFilmes(Filme *ptr,int acao,FILE *dados){
 /*
 Função: buscaFilme
 Autor: Feita por Henrique Soares Costa, github.com/RIQUETRET
-Entradas: O Vetor de filmes(*ptr), O ponteiro para o ponteiro de arquivos(**ptr2)
+Entradas: O Vetor de filmes(*ptr), O ponteiro de arquivos(*ptr2)
 e por fim o nome do filme desejado (*nome_filme)
 Saídas: Seu vetor recebe o filme desejado, se este filme
 for encontrado na base de dados
@@ -551,19 +632,18 @@ int buscaFilme(Filme *ptr,FILE *ptr2,char *nome_filme){
 
     fseek(ptr2,0,SEEK_SET);    //Posiciona o cursor no inicio para buscar o filme
 
-    while(fgets(lido,55,ptr2)!=NULL) { //Leia uma linha do arquivo e caso encontre EOF, saia do loop e retorne -1
+    while(fgets(lido,55,ptr2)!=NULL) {                          //Leia uma linha do arquivo e caso encontre EOF, saia do loop e retorne -1
         if (lido[0]=='i'){                                      //A gente leu um identificador?
-            posicao_identificador=ftell(ptr2)-strlen(lido);    //Vamos salvar a posição desse identificador no arquivo, para que assim no futuro possamos chamar a função le_filmes, que no caso precisa obrigatoriamente iniciar a leitura no identificador
+            posicao_identificador=ftell(ptr2)-strlen(lido);     //Vamos salvar a posição desse identificador, para que assim no futuro possamos chamar a função le_filmes, que no caso precisa obrigatoriamente iniciar a leitura no identificador
         }
         else if(lido[0]=='n'){                                  //A gente leu um filme?
             lido[strcspn(lido, "\n")] = 0;                      //Remove \n introduzido pelo fgets
-            if(strcmp(&lido[3],nome_filme)==0){                 //O filme lido e o desejado é igual?
-                fseek(ptr2,posicao_identificador,SEEK_SET);    //Reposiciona cursor para identificador deste filme
-                leFilmes(&(*ptr),1,ptr2);                      //Le o filme (salva para o vetor de filmes)
+            if(strcmp(&lido[3],nome_filme)==0){                 //O filme lido e o desejado eh igual?
+                fseek(ptr2,posicao_identificador,SEEK_SET);     //Reposiciona cursor para o identificador deste filme
+                leFilmes(&(*ptr),1,ptr2);                       //Le o filme (salva para o vetor de filmes)
                 return 0;                                       //Retorna 0 indicando sucesso na busca e salvamento do filme
             }
         }
     }//END while(fgets(lido,55,*ptr2)!=NULL)
-    return -1;
+    return -1;                                                  //Retorna -1 indicando falha na busca
 }
-
