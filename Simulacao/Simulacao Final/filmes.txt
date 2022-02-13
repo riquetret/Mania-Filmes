@@ -1,10 +1,5 @@
-i: 1
-n: eu aumentei
+i: 8600
+n: testando
 g: delicia
-l: 2000
-d: henrique
-i: 2
-n: eu vi a lua
-g: maoe
 l: 1930
-d: kkkkkkk
+d: eu
