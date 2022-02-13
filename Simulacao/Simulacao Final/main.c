@@ -17,7 +17,6 @@ github.com/riquetret/Trabalho-De-Final-de-Prog
 #include <time.h>
 #include <locale.h>
 #include <ctype.h>
-#include <time.h>
 
 typedef struct  //Declara nosso struct de filmes
 {
@@ -47,7 +46,7 @@ int adicionaFilme(Filme *ptr, int tam,FILE *ptr2);
 int geraIdentificador(FILE *ptr);                                   //Gera identificador
 int editaFilme(Filme *ptr,int posicao,FILE *ptr2);
 int removeFilme(Filme *ptr,int posicao);
-int imprimeFilmes(Filme *ptr,int posicao);                      
+int imprimeFilmes(Filme *ptr,int posicao);
 int escreveFilmes(Filme *ptr,FILE *arq_salvar,int posicao,int *tam);//Escreve do vetor de filmes para o banco de dados
 int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam);                //Grava os filmes do vetor para o banco de dados
 int leFilmes(Filme *ptr,int acao,FILE *dados);                      //Ler os filmes do banco de dados e atribuir ao vetor
@@ -131,6 +130,7 @@ int main(){
                 printf("ALERTA: A gravacao de filmes, retira da memoria os filmes ja carregados\n\n");
                 gravaFilmes(&filmes_lidos[0],arquivo,&filmes_adicionados);           //Grava os filmes adicionados ou alterados
                 strcpy(status_do_banco,"NAO");                                       //Tudo foi resetado, logo o banco nao esta mais carregado
+                inicializa_arquivo(&arquivo,"filmes.txt","r+");                      //Abre o arquivo "filmes.txt" novamente, pq o gravaFilme deleta o arquivo "filmes.txt"
             break;
             case Ler_Banco:
                 limpa_tela();                                                   //limpa a tela
@@ -152,7 +152,7 @@ int main(){
                         filme_desejado[strcspn(filme_desejado, "\n")] = 0;              //Remove \n lido pelo fgets
                         for(posicoes=0;filme_desejado[posicoes]!='\0';posicoes++)filme_desejado[posicoes]=tolower(filme_desejado[posicoes]);//Transforma o nome do filme digitado para minusculo
                         if(buscaFilme(&filmes_lidos[0],arquivo,filme_desejado)==-1){    //Se o filme nao foi encontrado
-                            printf("\nErro: Filme não encontrado\n");                   //Exiba o erro
+                            printf("\nErro: Filme nao encontrado\n");                   //Exiba o erro
                             printf("Deseja continuar a busca? (Digite S para sim e N para nao)\n"); //Pergunte se deseja continuar a busca
                             filme_desejado[0]=getchar();                                //Leia a opcao digitada
                             filme_desejado[0]=tolower(filme_desejado[0]);               //Transforme a opcao digitada para minusculo
@@ -257,7 +257,7 @@ int le_numero(void *numero,double ri, double rf, char t){
                 else erro=0;                                                                //Se nao defina um erro
             }
             break;
-        case 'i':                                                                           //Variavel do tipo inteira 
+        case 'i':                                                                           //Variavel do tipo inteira
             erro=scanf("%d",(int *) numero);                                                //Le um double e erro recebe a quantidade de informacoes lidas
             if(erro==1){                                                                    //Conseguimos ler o numero?
                 if( (*(int *) numero) >= (int) ri &&                                        //Esse numero lido esta dentro o intervalo especificado?
@@ -365,7 +365,7 @@ int geraIdentificador(FILE *ptr){
 Função: editaFilme
 Autor: João Vitor Araujo Leao
 Entradas: O ponteiro de arquivo da sua base de dados (*ptr),
-a posicao desejada do vetor para editar (posicao), e seu banco de dados (*ptr2) 
+a posicao desejada do vetor para editar (posicao), e seu banco de dados (*ptr2)
 Saídas: Seu vetor editado com os filmes
 Retorno: 0 se sucesso e -1 se erro
 
