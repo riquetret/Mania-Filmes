@@ -1,10 +1,10 @@
 i: 1
-n: kkkkkkkkk
-g: maoe
+n: henrique
+g: costa
 l: 1950
-i: henrique
+d: maoe
 i: 2
 n: eu vi a lua
 g: maoe
 l: 1930
-i: kkkkkkk
+d: kkkkkkk

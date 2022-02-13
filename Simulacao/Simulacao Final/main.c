@@ -34,8 +34,8 @@ int removeFilme(Filme *ptr,int posicao);
 int imprimeFilmes(Filme *ptr,int posicao);
 int escreveFilmes(Filme *ptr,FILE *arq_salvar,int posicao,int *tam);
 int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam);
-int leFilmes(Filme *ptr,int tam,FILE *dados);
-int buscaFilme(Filme *ptr,FILE **ptr2,char *nome_filme);
+int leFilmes(Filme *ptr,int acao,FILE *dados);
+int buscaFilme(Filme *ptr,FILE *ptr2,char *nome_filme);
 
 
 int main(){
@@ -54,6 +54,8 @@ int main(){
 
     char acoes[][9]={"editar?","deletar?"};                                         //Declara matriz para não repetir o código basicamente
 
+    char filme_desejado[50];
+
     int posicoes,filmes_adicionados=0,retorno;                                      //Declara posicoes (Para alterar uma posição do vetor), declara filmes_adicionados (para contabilizar quantos filmes já foram adicionados) e por fim declara retorno para analisar o retorno de algumas funções
 
     char status_do_banco[]="NAO";                                                   //O banco de dados esta aberto? Neste caso nao
@@ -65,7 +67,7 @@ int main(){
 
     do
     {
-        printf("=================================================================================\n");
+        printf("================================================================\n");
         printf("BEM-VINDO ao forum MANIA-FILMES\n");                                    //Mensagens iniciais
         printf("\nSe sua entrada nao for processada, aperte \"enter\" DUAS vezes\n\n");	//Devido ao limpa_buffer que pode tentar ler quando nao ha entradas no buffer do teclado
 
@@ -78,8 +80,8 @@ int main(){
         limpa_tela();                                                               //Limpa a tela
         if(1<opcao && opcao<4){                                                     //A pessoa deseja editar? ou deletar ou exibir?
             imprimeFilmes(&filmes_lidos[0],-1);          //Exiba os filmes cadastrados
-            printf("\nQual posicao deseja %s (-1 para cancelar)\n",acoes[opcao-2] );   //Pergunta qual posicao deseja editar ou deletar ou (Sabemos que a pessoa quer uma dessas três opcoes)
-            le_numero(&posicoes,-1,50,'i');                                 //Le a posição desejada
+            printf("\nQual posicao deseja %s (0 para cancelar)\n",acoes[opcao-2] );   //Pergunta qual posicao deseja editar ou deletar ou (Sabemos que a pessoa quer uma dessas três opcoes)
+            le_numero(&posicoes,0,50,'i');                                 //Le a posição desejada
             posicoes--;                                                     //Decrementa posicoes para escolher a posicao correta no vetor
             if(posicoes<0)continue;                                         //Se deseja cancelar saia e volte para o loop
         }
@@ -101,27 +103,65 @@ int main(){
             case Remover:
                 removeFilme(&filmes_lidos[0],posicoes);                         //Remove Filme Escolhido
                 if(filmes_adicionados>0)filmes_adicionados--;                   //Tiramos um filme
-                printf("Filme removido com sucesso");                           //Mostra Filme Removido com sucess
+                printf("Filme removido com sucesso\n");                           //Mostra Filme Removido com sucess
             break;
             case Exibir:
-                printf("Qual posicao deseja exibir? -1 para todos");
+                printf("Qual posicao deseja exibir? -1 para todos\n");
                 le_numero(&posicoes,-1,50,'i');
                 imprimeFilmes(&filmes_lidos[0],posicoes);                       //Exibe filme escolhido ou todos se posicoes igual a -1
             break;
             case Gravar:
+                printf("ALERTA: A gravacao de filmes, retira da memoria os filmes ja carregados");
                 gravaFilmes(&filmes_lidos[0],arquivo,&filmes_adicionados);           //Grava os filmes adicionados ou alterados
+                strcpy(status_do_banco,"NAO");                                       //Tudo foi resetado, logo o banco nao esta mais carregado
             break;
             case Ler_Banco:
-                while (posicoes==-1)
+                limpa_tela();
+                printf("ALERTA: A leitura do banco de dados, sobrescreve os filmes ja carregados na memoria\n\n");
+                printf("Voce deseja:\n");
+                printf("0)Cancelar a operacao\
+                        \n1)Procurar Por Um Filme\
+                        \n2)Abrir os filmes do Banco de dados\
+                        \n3)Deletar/Recriar o Banco de Dados\n");
+                printf("Sua opcao: ");
+                le_numero(&posicoes,0,3,'i');
+                switch (posicoes)
                 {
-                    fgets(&filmes_lidos[0].nome[0],50,stdin);                           //Le o filme para procurar
-                    limpa_buffer();                                                     //Limpa lixo do teclado
-                    filmes_lidos[0].nome[strcspn(filmes_lidos[0].nome, "\n")] = 0;      //Remove \n lido pelo fgets
-                    posicoes = buscaFilme(&filmes_lidos[0],&arquivo,&filmes_lidos[0].nome[0]);//Busca o filme digitado
-                    if(posicoes==-1)printf("\nErro digite o nome do filme novamente: ");//Erro na buscaFilme
-                    else filmes_adicionados=50;                                         //O buscaFilme ja carregou 50 filmes, além do filme escolhido
+                case 1:
+                    while(1){
+                        printf("\nDigite o filme desejado: ");                          //Pede o filme
+                        fgets(filme_desejado,50,stdin);                                 //Le o filme para procurar
+                        limpa_buffer();                                                 //Limpa lixo do teclado
+                        filme_desejado[strcspn(filme_desejado, "\n")] = 0;              //Remove \n lido pelo fgets
+                        for(posicoes=0;filme_desejado[posicoes]!='\0';posicoes++)filme_desejado[posicoes]=tolower(filme_desejado[posicoes]);
+                        if(buscaFilme(&filmes_lidos[0],arquivo,filme_desejado)==-1){
+                            printf("\nErro: Filme não encontrado\n");
+                            printf("Deseja continuar a busca? (Digite S para sim e N para nao)\n");
+                            filme_desejado[0]=getchar();
+                            filme_desejado[0]=tolower(filme_desejado[0]);
+                            if(filme_desejado[0]=='n')break;
+                        }
+                        else{
+                            filmes_adicionados++;
+                            strcpy(status_do_banco,"SIM");
+                        }break;
+                    }//END while(1)
+                    break;
+                case 2:
+                    fseek(arquivo,0,SEEK_SET);                                      //Reposiciona cursor no inicio do banco de dados
+                    retorno=leFilmes(&filmes_lidos[0],2,arquivo);
+                    filmes_adicionados+=retorno;
+                    if(retorno>0)strcpy(status_do_banco,"SIM");
+                    break;
+                case 3:
+                    fclose(arquivo);
+                    remove("filmes.txt");                                           //Remove o banco de dados
+                    inicializa_arquivo(&arquivo,"filmes.txt","r+");                 //Recria o banco de dados "filmes.txt" no modo leitura para atualizar
+                    break;
+                default:
+                    break;
                 }
-                break;
+                break;//END CASE LER BANCO
         } //END SWITCH(OPCAO)
     }while(opcao);//END WHILE(1)
 
@@ -229,7 +269,7 @@ void inicializa_arquivo(FILE **arq,char *nome,char *modo){
     if(*arq==NULL){                                             //Se ele não existir ou o programa não ter permissão suficiente, crie ele
         fclose(*arq);                                           //Feche o arquivo por segurança
         *arq=fopen(nome,"w");                                   //Tente então criar o arquivo
-        if(*arq=NULL)exit(EXIT_FAILURE);                        //Se a criação nao foi possível finalize o programa e exiba erro
+        if(*arq==NULL)exit(EXIT_FAILURE);                        //Se a criação nao foi possível finalize o programa e exiba erro
     }
     fclose(*arq);                                               //Fecha o arquivo por segurança
     *arq=fopen(nome,modo);                                      //Reabre o arquivo no modo selecionado
@@ -348,6 +388,7 @@ int imprimeFilmes(Filme *ptr,int posicao){
     }
     for(;n<parada;n++){
         if(ptr[n].identificador!=0){
+            printf("\n==================");
             printf("\nNome:");
             puts(ptr[n].nome);
             printf("Genero:");
@@ -356,7 +397,7 @@ int imprimeFilmes(Filme *ptr,int posicao){
             printf("%d\n",ptr[n].anoLancamento);
             printf("Diretor:");
             puts(ptr[n].nomeDiretor);
-            printf("Posicao:%d",n);
+            printf("Posicao:%d",n+1);
             printf("\n==================\n");
         }
     }
@@ -395,7 +436,7 @@ int gravaFilmes(Filme *ptr,FILE *arq_orig,int *tam){
     fseek(arq_orig,0,SEEK_SET);                                     //Posiciona ponteiro para o inicio de "filmes.txt"
 
     do{
-        erro=fgets(lido,55,arq_orig);
+        erro=fgets(lido,55,arq_orig);                               //Vamos ler uma linha do meu arquivo
         if(erro==NULL){                          //Fim de arquivo encontrado
             for(j=0;j<50 && *tam!=0;j++){
                 if(ptr[j].identificador!=0)escreveFilmes(&(*ptr),arq_dst,j,&(*tam));   //Se o identificador no vetor de filmes nao eh nulo, logo escreva este filme no meu arquivo de destino "filmes_copia.txt"
@@ -444,8 +485,51 @@ Objetivo: Vasculha o arquivo, lendo linha por linha
 quando encontra um nome de filme igual ao desejado,
 carrega no vetor com leFilmes() e posteriomente retorna 0
 */
-int leFilmes(Filme *ptr,int tam,FILE *dados){
-
+int leFilmes(Filme *ptr,int acao,FILE *dados){
+    limpa_tela();
+    char auxiliar[55],*teste_de_fim;
+    int quantidade_adicionada=0,posicao_identificador,n;
+    if(acao==2){
+        fseek(dados,0,SEEK_SET);
+        do
+        {
+            teste_de_fim=fgets(auxiliar,55,dados);
+            if(teste_de_fim!=NULL)puts(auxiliar);
+            if(auxiliar[0]=='i'){
+                quantidade_adicionada++;
+                if(quantidade_adicionada==1)posicao_identificador=ftell(dados)-strlen(auxiliar);    //Vamos salvar a posição desse identificador no arquivo, para que assim no futuro possamos salvar os filmes
+            }
+            if(teste_de_fim==NULL)printf("\nFIM DO BANCO DE DADOS");
+            if(quantidade_adicionada==50 || teste_de_fim==NULL){
+                printf("\nDeseja salvar estes filmes?(Digite S para sim e N para nao)\n");
+                auxiliar[1]=getchar();
+                limpa_buffer();
+                auxiliar[1]=tolower(auxiliar[1]);
+                if(auxiliar[1]=='n' && teste_de_fim!=NULL)quantidade_adicionada=0;
+            }
+        } while (auxiliar[1]!='s');
+        fseek(dados,posicao_identificador,SEEK_SET);
+        for(n=0;n<quantidade_adicionada;n++){
+            fscanf(dados,"%*s%d",&ptr[n].identificador );
+            fscanf(dados,"%*s %[^\n]",ptr[n].nome);         //Leia uma string até encontrar o \n e descarte o \n
+            fscanf(dados,"%*s %[^\n]",ptr[n].genero);       //Leia uma string até encontrar o \n e descarte o \n
+            fscanf(dados,"%*s %d",&ptr[n].anoLancamento);
+            fscanf(dados,"%*s %[^\n]",ptr[n].nomeDiretor);  //Leia uma string até encontrar o \n e descarte o \n
+        }
+    }
+    else{
+        imprimeFilmes(&(*ptr),-1);
+        printf("\n\n\nO FILME BUSCADO FOI ENCONTRADO\n");
+        printf("\nQual posicao deseja colocar o filme encontrado?\n(Se nenhum filme aparecer acima, digite um numero entre 1 e 50)\n");
+        le_numero(&n,1,50,'i');
+        n--;
+        fscanf(dados,"%*s%d",&ptr[n].identificador );
+        fscanf(dados,"%*s %[^\n]",ptr[n].nome);         //Leia uma string até encontrar o \n e descarte o \n
+        fscanf(dados,"%*s %[^\n]",ptr[n].genero);       //Leia uma string até encontrar o \n e descarte o \n
+        fscanf(dados,"%*s %d",&ptr[n].anoLancamento);
+        fscanf(dados,"%*s %[^\n]",ptr[n].nomeDiretor);  //Leia uma string até encontrar o \n e descarte o \n
+    }
+    return quantidade_adicionada;
 }
 /*
 Função: buscaFilme
@@ -461,22 +545,21 @@ quando encontra um nome de filme igual ao desejado,
 carrega no vetor com leFilmes() e posteriomente retorna 0
 */
 
-int buscaFilme(Filme *ptr,FILE **ptr2,char *nome_filme)
-{
+int buscaFilme(Filme *ptr,FILE *ptr2,char *nome_filme){
     int posicao_identificador; //Variavel para armazenar a posicao do "i" ou identificador, para que assim possamos reposicionar o ponteiro de arquivos (*ptr2)
     char lido[55];  //Vamos ler linha por linha do nosso arquivo com esse vetor e portanto podemos ter ao máximo 54 caracteres, sendo que isso pode ocorrer quando formos ler o nome, ou seja, "n: \n" + 50 caracteres do nome
 
-    fseek(*ptr2,0,SEEK_SET);    //Posiciona o cursor no inicio para buscar o filme
+    fseek(ptr2,0,SEEK_SET);    //Posiciona o cursor no inicio para buscar o filme
 
-    while(fgets(lido,55,*ptr2)!=NULL) { //Leia uma linha do arquivo e caso encontre EOF, saia do loop e retorne -1
+    while(fgets(lido,55,ptr2)!=NULL) { //Leia uma linha do arquivo e caso encontre EOF, saia do loop e retorne -1
         if (lido[0]=='i'){                                      //A gente leu um identificador?
-            posicao_identificador=ftell(*ptr2)-strlen(lido);    //Vamosa salvar a posição desse identificador no arquivo, para que assim no futuro possamos chamar a função le_filmes, que no caso precisa obrigatoriamente iniciar a leitura no identificador
+            posicao_identificador=ftell(ptr2)-strlen(lido);    //Vamos salvar a posição desse identificador no arquivo, para que assim no futuro possamos chamar a função le_filmes, que no caso precisa obrigatoriamente iniciar a leitura no identificador
         }
         else if(lido[0]=='n'){                                  //A gente leu um filme?
             lido[strcspn(lido, "\n")] = 0;                      //Remove \n introduzido pelo fgets
             if(strcmp(&lido[3],nome_filme)==0){                 //O filme lido e o desejado é igual?
-                fseek(*ptr2,posicao_identificador,SEEK_SET);    //Reposiciona cursor para identificador deste filme
-                //le_filmes()                                   //Le o filme (salva para o vetor de filmes)
+                fseek(ptr2,posicao_identificador,SEEK_SET);    //Reposiciona cursor para identificador deste filme
+                leFilmes(&(*ptr),1,ptr2);                      //Le o filme (salva para o vetor de filmes)
                 return 0;                                       //Retorna 0 indicando sucesso na busca e salvamento do filme
             }
         }

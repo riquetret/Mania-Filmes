@@ -1,10 +1,10 @@
 i: 1
-n: henrique
-g: costa
-l: 1950
-d: maoe
+n: eu aumentei
+g: delicia
+l: 2000
+d: henrique
 i: 2
 n: eu vi a lua
 g: maoe
 l: 1930
-i: kkkkkkk
+d: kkkkkkk
