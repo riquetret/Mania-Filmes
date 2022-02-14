@@ -347,19 +347,19 @@ a este numero gerado presente na base de dados
 */
 int geraIdentificador(FILE *ptr){
     srand(time(NULL));                                      //Gera semente para funcao rand()
-    int numerado_gerado,identificador_lido;                 //Para receber o numero gerado e para receber o identificador da base de dados
+    int numero_gerado,identificador_lido;                 //Para receber o numero gerado e para receber o identificador da base de dados
     char lido[55];                                          //Vetor para ler as linhas do arquivo
-    numerado_gerado = rand()+1;                             //Vamos gerar um numero de 1 até RAND_MAX+1
+    numero_gerado = rand()+1;                             //Vamos gerar um numero de 1 até RAND_MAX+1
     fseek(ptr,0,SEEK_SET);                                  //Reposiciona ponteiro de arquivo no inicio do meu arquivo "filmes.txt"
     while (fgets(lido,0,ptr)!=NULL)
     {
         if (lido[0]='i')                                    //A linha lido no arquivo é a linha de um identificador?
         {
             sscanf(lido,"%[i:]%d",identificador_lido);      //Vamos ler o identificador em asc2 e atribuir a variavel identificador_lido
-            if(identificador_lido==numerado_gerado)numerado_gerado = rand()+1;//Se encontramos um identificador igual na base de dados, gere um novo identificador para o filme
+            if(identificador_lido==numero_gerado)numero_gerado = rand()+1;//Se encontramos um identificador igual na base de dados, gere um novo identificador para o filme
         }
     }
-    return numerado_gerado;                                 //Retorna o numero_gerado
+    return numero_gerado;                                 //Retorna o numero_gerado
 }
 /*
 Função: editaFilme
@@ -393,7 +393,6 @@ int editaFilme(Filme *ptr,int posicao,FILE *ptr2){
     printf("Digite o ano de lancamento do %d%c filme", posicao,248); //atrelando o ano de lancamento do filme inserido pelo usuario
     printf("\nDigite um ano entre 1900 e 2021: ");
     le_numero(&(ptr[posicao].anoLancamento),1900,2021,'i');   //Le ano do filme com fgets para nao deixar overflow
-    limpa_buffer();
 
     printf("Digite o nome do diretor do %d%c filme: ", posicao,248); //atrelando o nome do diretor do filme inserido pelo usuario
     fgets(ptr[posicao].nomeDiretor,30,stdin); //Le o nome do diretor com fgets para nao deixar overflow
@@ -567,20 +566,24 @@ Função: leFilmes
 Autor: Feita por Gabriel Henrique
 */
 int leFilmes(Filme *ptr,int acao,FILE *dados){
-    limpa_tela();
     char auxiliar[55],*teste_de_fim;
     int quantidade_adicionada=0,posicao_identificador,n;
+    limpa_tela();
     if(acao==2){
         fseek(dados,0,SEEK_SET);
         do
         {
             teste_de_fim=fgets(auxiliar,55,dados);
-            if(teste_de_fim!=NULL)puts(auxiliar);
-            if(auxiliar[0]=='i'){
-                quantidade_adicionada++;
-                if(quantidade_adicionada==1)posicao_identificador=ftell(dados)-strlen(auxiliar);    //Vamos salvar a posição desse identificador no arquivo, para que assim no futuro possamos salvar os filmes
+            if(teste_de_fim!=NULL){
+                puts(auxiliar);
+                if(auxiliar[0]=='i'){
+                    quantidade_adicionada++;
+                    if(quantidade_adicionada==1)posicao_identificador=ftell(dados)-strlen(auxiliar);    //Vamos salvar a posição desse identificador no arquivo, para que assim no futuro possamos salvar os filmes
+                }
             }
-            if(teste_de_fim==NULL)printf("\nFIM DO BANCO DE DADOS");
+            else{
+                printf("\nFIM DO BANCO DE DADOS");
+            }     
             if(quantidade_adicionada==50 || teste_de_fim==NULL){
                 printf("\nDeseja salvar estes filmes?(Digite S para sim e N para nao)\n");
                 auxiliar[1]=getchar();
@@ -641,7 +644,7 @@ int buscaFilme(Filme *ptr,FILE *ptr2,char *nome_filme){
             if(strcmp(&lido[3],nome_filme)==0){                 //O filme lido e o desejado eh igual?
                 fseek(ptr2,posicao_identificador,SEEK_SET);     //Reposiciona cursor para o identificador deste filme
                 leFilmes(&(*ptr),1,ptr2);                       //Le o filme (salva para o vetor de filmes)
-                return 0;                                       //Retorna 0 indicando sucesso na busca e salvamento do filme
+                return 0;                                         //Retorna 0 indicando sucesso na busca e salvamento do filme
             }
         }
     }//END while(fgets(lido,55,*ptr2)!=NULL)
