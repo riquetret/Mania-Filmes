@@ -1,6 +1,6 @@
-# Trabalho Final de Prog - 15/01/2022
+# Mania Filmes (Trabalho Final de Prog) - 15/01/2022
 
-Este trabalho foi avaliado nas disciplinas de graduação referentes a programação e lab.programação
+Este trabalho foi avaliado nas disciplinas de graduação do CEFET-MG referentes a programação e lab.programação
 e teve como propósito
 
 Implementar um forum de filmes
